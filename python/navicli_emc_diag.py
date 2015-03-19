@@ -45,6 +45,9 @@ def cli_check():
        return False
 
 def emc_check(naviseccli,astute):
+
+    emc_username = astute['storage']['emc_username']
+    emc_password = astute['storage']['emc_password']
     def run_c(command):
         child = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
         child.wait()
@@ -57,28 +60,22 @@ def emc_check(naviseccli,astute):
     run_c(" ".join([naviseccli, '-Help']))
 #
     run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_a_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 faults -list' ]))
+    emc_username, '-password', emc_password, '-scope 0 faults -list' ]))
 #
     run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_b_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 faults -list' ]))
-#
+    emc_username, '-password', emc_password, '-scope 0 faults -list' ]))
+#   
     run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_a_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 networkadmin -get -sp a' ]))
+    emc_username, '-password', emc_password, '-scope 0 networkadmin -get -sp a' ]))
 #
     run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_b_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 networkadmin -get -sp b' ]))
-#
+    emc_username, '-password', emc_password, '-scope 0 networkadmin -get -sp b' ]))
+#   
     read_ports_a = run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_a_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 connection -getport' ]))
+    emc_username, '-password', emc_password, '-scope 0 connection -getport' ]))
 #
     read_ports_b = run_c(" ".join([naviseccli, '-h', astute['storage']['emc_sp_b_ip'], '-user', \
-    astute['storage']['emc_username'], '-password', \
-    astute['storage']['emc_password'], '-scope 0 connection -getport' ]))
+    emc_username, '-password', emc_password, '-scope 0 connection -getport' ]))
 #
     ips = []
     for i in read_ports_a[0].split('\n'):

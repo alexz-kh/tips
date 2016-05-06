@@ -1,6 +1,6 @@
 FROM xenial_i386
 
-RUN cd /etc/apt/; echo > sources.list; echo "deb http://cz.archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse\ndeb http://cz.archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse\n" >> sources.list
+RUN cd /etc/apt/; echo "deb http://cz.archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse\ndeb http://cz.archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse\n" > sources.list
 
 #RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" >> /etc/apt/sources.list
 RUN echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections

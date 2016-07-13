@@ -12,8 +12,7 @@ def mh_z19():
   return co_result
 
 
-while True: 
-    value = mh_z19()
-    print "Co2: %s" % value
-    requests.get('https://api.thingspeak.com/update?api_key=X3FRUHF0JRLA0ODF&field1={}'.format(value))
-    time.sleep(60)
+value = mh_z19()
+print "Co2: %s" % value
+requests.get('https://api.thingspeak.com/update?api_key=X3FRUHF0JRLA0ODF&field1={}'.format(value))
+#time.sleep(60)

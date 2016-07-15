@@ -1,1 +1,1 @@
-*/5 * * * * /root/rpi/env_ws2812/bin/python /root/rpi/smart_gas/smart_gas.py 2&>1 >> /var/log/smart_gas.log
+*/5 * * * * /root/rpi/smart_gas/cron.sh

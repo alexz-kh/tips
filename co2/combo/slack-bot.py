@@ -24,9 +24,9 @@ warn_list = "@alexz @abubyr @max_borodavka @okosse @amatveev"
 graph_link = "https://thingspeak.com/channels/127030"
 HELP_MESSAGE = """Hi!For now i can understant commands:\n
 status: fetch current sensors status \n\n
-Current list of warned peoples:
+Current list of warned peoples:\n
 {}
-Btw, you can check weather log's at {} \n""".format(warn_list, graph_link)
+Btw, you can check weather history here {}""".format(warn_list,graph_link)
 
 def get_sensors():
     sensor_ht = HTU21D()
@@ -38,7 +38,7 @@ def get_status():
     status = get_sensors()
     tz = pytz.timezone('Europe/Kiev')
     c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    return "For time:{}\n state was:{}".format(c_time,status)
+    return "For time:{}\n state was:{}\nHistory is here:{}".format(c_time,status,graph_link)
 
 def handle_command(command, channel):
     """
@@ -74,19 +74,19 @@ def parse_slack_output(slack_rtm_output):
 
 def check_status(timertime=60*5):
     # it's not good time to notify someone in non-working time...
-    if datetime.datetime.now().strftime("%H") not in range(10,20):
+    if int(datetime.datetime.now().strftime("%H")) not in range(10,20):
         return
     # post it only in one channel
     channel = post_channel
     threading.Timer(timertime, check_status).start()
     status = get_sensors()['Co2 in ppm:']
-    if status < 1800:
+    if status < 1400:
         return
-    elif status >= 1800:
+    elif status >= 1400:
         response = "Co2 now is:{}\n I would like to propose open windows for a while...".format(status)
-    elif status > 1900:
+    elif status > 1500:
         response = "Co2 now is:{}\n Hey folks: {} time to open windows...".format(status,warn_list)
-    elif status > 2400:
+    elif status > 1800:
         response = """Co2 now is:{}!!!\n Folks: {} @here ! :nothingtodohere:\n
                       You will die in a while! OPEN WINDOWS!""".format(status,warn_list)
     slack_client.api_call("chat.postMessage", channel=channel,

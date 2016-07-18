@@ -10,7 +10,7 @@ import datetime
 class mhz19(object):
     def __init__(self):
         self.SERIAL_DEVICE = '/dev/ttyAMA0'
-        self.fake_value = 400
+        self.warmup_time = 60*5
 
     def _get_uptime(self, return_type):
         with open('/proc/uptime', 'r') as f:
@@ -18,7 +18,7 @@ class mhz19(object):
             uptime_string = str(datetime.timedelta(seconds = uptime_seconds))
         _is_safe = True
         # CO2 meter need few min to start
-        if uptime_seconds < 10 * 60:
+        if uptime_seconds < self.warmup_time:
             _is_safe = False
         if return_type == 'seconds':
             return uptime_seconds
@@ -28,13 +28,16 @@ class mhz19(object):
             return _is_safe
 
     def read_co2(self):
-      # return fake value,if sensor not warmed :(
-      if not self._get_uptime('safe'):
-          return self.fake_value
+      """
+      Can return int or None
+      """
       with serial.Serial(self.SERIAL_DEVICE, baudrate=9600, timeout=1.0) as ser:
           result=ser.write("\xff\x01\x86\x00\x00\x00\x00\x00\x79")
           s=ser.read(9)
           co_result=ord(s[2])*256 + ord(s[3])
+      # return None value,if sensor not warmed yet
+      if not self._get_uptime('safe'):
+          return None
       return co_result
 
 class HTU21D(object):

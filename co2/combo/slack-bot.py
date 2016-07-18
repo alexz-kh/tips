@@ -20,7 +20,8 @@ post_channel = os.environ.get("SLACK_POST_IN")
 # constants
 AT_BOT = "<@" + BOT_ID + ">:"
 HELP_COMMAND = "help"
-warn_list = "@alexz @abubyr @max_borodavka @okosse @amatveev"
+#warn_list = "@alexz @abubyr @max_borodavka @okosse @amatveev"
+warn_list = ";( ;( "
 graph_link = "https://thingspeak.com/channels/127030"
 HELP_MESSAGE = """Hi!For now i can understant commands:\n
 status: fetch current sensors status \n\n
@@ -80,13 +81,13 @@ def check_status(timertime=60*5):
     channel = post_channel
     threading.Timer(timertime, check_status).start()
     status = get_sensors()['Co2 in ppm:']
-    if status < 1400:
+    if status < 1600:
         return
-    elif status >= 1400:
-        response = "Co2 now is:{}\n I would like to propose open windows for a while...".format(status)
-    elif status > 1500:
-        response = "Co2 now is:{}\n Hey folks: {} time to open windows...".format(status,warn_list)
-    elif status > 1800:
+    elif status < 1800:
+        response = "Co2 now is:{}\nI suggest that you open windows for a while...".format(status)
+    elif status < 1900:
+        response = "Co2 now is:{}\nHey folks: {} time to open windows...".format(status,warn_list)
+    else:
         response = """Co2 now is:{}!!!\n Folks: {} @here ! :nothingtodohere:\n
                       You will die in a while! OPEN WINDOWS!""".format(status,warn_list)
     slack_client.api_call("chat.postMessage", channel=channel,

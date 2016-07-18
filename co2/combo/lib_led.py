@@ -37,6 +37,8 @@ class my_ws_2812(object):
         self.strip.show()
 
     def to_level(self, ppm):
+        if ppm is None:
+            return
         intn = 10
         # gled=G,R,B
         gled=Color(intn, 0, 0)

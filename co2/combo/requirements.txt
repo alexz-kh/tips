@@ -1,0 +1,8 @@
+requests
+pyserial
+pytz
+#rpi_ws281x < for some reason, not work for me ;(
+slackclient
+
+# manually installed rpi_ws281x
+# git clone https://github.com/jgarff/rpi_ws281x.git; cd rpi_ws281x ; scons && cd python; python setup.py install

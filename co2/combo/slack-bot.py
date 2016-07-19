@@ -3,31 +3,13 @@
 """ Ref manual:
 https://www.fullstackpython.com/blog/build-first-slack-bot-python.html
 """
-import os
-import time
-from slackclient import SlackClient
-from lib_sensors import HTU21D,mhz19
-
+import os,sys
 import pytz, datetime, time
 import struct
 import array
 import threading
-
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-BOT_ID = os.environ.get("SLACK_BOT_ID")
-post_channel = os.environ.get("SLACK_POST_IN")
-
-# constants
-AT_BOT = "<@" + BOT_ID + ">:"
-HELP_COMMAND = "help"
-#warn_list = "@alexz @abubyr @max_borodavka @okosse @amatveev"
-warn_list = ";( ;( "
-graph_link = "https://thingspeak.com/channels/127030"
-HELP_MESSAGE = """Hi!For now i can understant commands:\n
-status: fetch current sensors status \n\n
-Current list of warned peoples:\n
-{}
-Btw, you can check weather history here {}""".format(warn_list,graph_link)
+from slackclient import SlackClient
+from lib_sensors import HTU21D,mhz19
 
 def get_sensors():
     sensor_ht = HTU21D()
@@ -78,7 +60,7 @@ def check_status(timertime=60*5):
     if int(datetime.datetime.now().strftime("%H")) not in range(10,20):
         return
     # post it only in one channel
-    channel = post_channel
+    channel = slack_post_channel
     threading.Timer(timertime, check_status).start()
     status = get_sensors()['Co2 in ppm:']
     if status < 1600:
@@ -88,15 +70,39 @@ def check_status(timertime=60*5):
     elif status < 1900:
         response = "Co2 now is:{}\nHey folks: {} time to open windows...".format(status,warn_list)
     else:
-        response = """Co2 now is:{}!!!\n Folks: {} @here ! :nothingtodohere:\n
+        response = """Co2 now is:{}!!!\n Folks: {} here ! :nothingtodohere:\n
                       You will die in a while! OPEN WINDOWS!""".format(status,warn_list)
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, as_user=True)
 
+
 if __name__ == "__main__":
+
+    slack_bot_token = os.environ.get('SLACK_BOT_TOKEN', None)
+    slack_bot_id = os.environ.get("SLACK_BOT_ID", None)
+    slack_post_channel = os.environ.get("SLACK_POST_IN", None)
+    
+    if None in (slack_bot_token,slack_bot_id,slack_post_channel):
+        print "ERROR: Unable to parse some env.variables!"
+        sys.exit(1)
+
+    # 
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+    AT_BOT = "<@" + slack_bot_id + ">:"
+    HELP_COMMAND = "help"
+    #warn_list = "@alexz @abubyr @max_borodavka @okosse @amatveev"
+    warn_list = "(I will not notify anyone...) "
+    graph_link = "https://thingspeak.com/channels/127030"
+    HELP_MESSAGE = """Hi!For now i can understant commands:\n
+    status: fetch current sensors status \n\n
+    Current list of warned peoples:\n
+    {}
+    Btw, you can check weather history here {}""".format(warn_list,graph_link)
+
+    print "INFO: script ran..."
+    slack_client = SlackClient(slack_bot_token)
     if slack_client.rtm_connect():
-        print("StarterBot connected and running!")
+        print("INFO: StarterBot connected and running!")
         check_status()
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
@@ -104,6 +110,4 @@ if __name__ == "__main__":
                 handle_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
-        print("Connection failed. Invalid Slack token or bot ID?")
-
-
+        print("ERROR: Connection failed. Invalid Slack token or bot ID?")

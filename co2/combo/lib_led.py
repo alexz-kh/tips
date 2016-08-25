@@ -72,7 +72,6 @@ class my_ws_2812(object):
 if __name__ == '__main__':
 	# Create NeoPixel object with appropriate configuration.
         lstrip = my_ws_2812()
-        import ipdb;ipdb.set_trace()
         lstrip.to_level(500)
         time.sleep(3)
         lstrip.colorWipe(Color(20, 10, 20), wait_ms=50)

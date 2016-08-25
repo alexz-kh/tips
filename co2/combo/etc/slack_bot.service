@@ -1,7 +1,8 @@
-# cp /root/smart_gas/src/etc/slack_bot.service /etc/systemd/system/slack_bot.service
+# ln -s ~/smart_gas/src/etc/slack_bot.service /lib/systemd/slack_bot.service
 #systemctl daemon-reload
 #systemctl enable slack_bot.service
 #systemctl start slack_bot.service
+
 [Unit]
 Description=slack-bot for co2
 After=network.target
@@ -16,6 +17,7 @@ WorkingDirectory=/root/smart_gas/
 EnvironmentFile=/root/smart_gas/openrc
 Environment=VIRTUAL_ENV=/root/smart_gas/venv/
 Environment=PATH=${VIRTUAL_ENV}/bin:$PATH
+#ExecStart=${VIRTUAL_ENV}/bin/python /root/smart_gas/src/slack-bot.py --serve-in-foreground
 ExecStart=/bin/bash -c "${VIRTUAL_ENV}/bin/python /root/smart_gas/src/slack-bot.py --serve-in-foreground"
 ExecStop=/usr/bin/pkill -f "python slack-bot.py"
 Restart=always

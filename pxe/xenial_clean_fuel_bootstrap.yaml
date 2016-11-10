@@ -1,12 +1,12 @@
---- 
+---
   root_ssh_authorized_file: /root/.ssh/id_rsa.pub
   extend_kopts: "biosdevname=0 net.ifnames=1 debug ignore_loglevel log_buf_len=10M print_fatal_signals=1 LOGLEVEL=8"
   ubuntu_release: xenial
-  extra_dirs: 
+  extra_dirs:
     - /usr/share/fuel_bootstrap_cli/files/xenial
   output_dir: /root/
   kernel_flavor: linux-image-generic-lts-xenial
-  packages: 
+  packages:
     - hwloc
     - linux-firmware
     - live-boot
@@ -26,9 +26,10 @@
     - htop
     - iftop
     - lvm2
-    - parted 
+    - parted
     - gdisk
     - util-linux
+    - dmidecode
   bootstrap_images_dir: /var/www/nailgun/bootstraps
   active_bootstrap_symlink: /var/www/nailgun/bootstraps/active_bootstrap
   flavor: ubuntu

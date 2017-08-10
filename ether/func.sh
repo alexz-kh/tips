@@ -41,7 +41,7 @@ function check_pl() {
 
 function set_over(){
   local mclock=${1:-1500}
-  local gpuclock=${2:-"-100"}
+  local gpuclock=${2:-"-150"}
   local gpu=${3:-"all"}
   if [[ "${gpu}" == "all" ]];then
     for gpu in $(seq 0 ${TOTAL_GPU}); do
@@ -68,6 +68,7 @@ cpufreq-set -g performance -c 0
 cpufreq-set -g performance -c 1
 X :0 &
 }
-#nvidia-smi --format=csv,nounits --query-gpu=fan.speed
+#nvidia-smi --format=csv,nounits --query-gpu=fan.speed 
 #nvidia-settings -a "[fan:0]/GPUCurrentFanSpeed=70"
 #while : ; do nvidia-smi dmon -d 1 -c 1 -s pucev ; date ;sleep 3 ; done
+

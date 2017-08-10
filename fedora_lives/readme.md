@@ -33,9 +33,11 @@ popd
 livecd-iso-to-pxeboot spin-kickstarts/alexz_fedora26.iso
 ```
 # Write 2 usb:
+```
  livecd-iso-to-disk --format --reset-mbr --overlay-size-mb 2048 spin-kickstarts/alexz_fedora26.iso /dev/sdX
+```
 
 
 # TODO
-Use start to run UI
-Search for img=>iscsi
+ Use startx to run UI
+ Search for img=>iscsi

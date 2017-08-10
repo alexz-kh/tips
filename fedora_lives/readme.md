@@ -12,7 +12,7 @@ docker run --device=/dev/sdX* --privileged -v ./test1/:/test1 --rm -it fedora /b
 
 # Prepare env
 
-```
+```{r, engine='bash', count_lines}
 cat >> /etc/yum.repos.d/epel.repo <<EOF
 [epel]
 baseurl=https://dl.fedoraproject.org/pub/epel/7/x86_64/
@@ -22,7 +22,7 @@ EOF
 ```
 # Install and build
  Create iso:
-```bash
+```{r, engine='bash', count_lines}
 dnf install livecd-tools spin-kickstarts -y
 cp -qa /usr/share/spin-kickstarts .
 cp -ra alexz-live-xfce.ks spin-kickstarts/
@@ -33,11 +33,11 @@ popd
 livecd-iso-to-pxeboot spin-kickstarts/alexz_fedora26.iso
 ```
 # Write 2 usb:
-```
+```{r, engine='bash', count_lines}
  livecd-iso-to-disk --format --reset-mbr --overlay-size-mb 2048 spin-kickstarts/alexz_fedora26.iso /dev/sdX
 ```
 
 
 # TODO
- Use startx to run UI
- Search for img=>iscsi
+ * Use startx to run UI
+ * Search for img=>iscsi

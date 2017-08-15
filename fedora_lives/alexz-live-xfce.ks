@@ -39,6 +39,7 @@ lm_sensors
 sysbench
 tcpdump
 gnome-disk-utility
+sleuthkit
 -abrt
 -gnome-abrt
 -emacs

@@ -40,6 +40,12 @@ sysbench
 tcpdump
 gnome-disk-utility
 sleuthkit
+hdparm
+nfs-utils
+nfs-utils-lib
+libnfsidmap
+lshw
+strace
 -abrt
 -gnome-abrt
 -emacs

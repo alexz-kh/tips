@@ -7,7 +7,7 @@ Readme:
 
 # Run docker
 ```bash
-docker run --device=/dev/sdX* --privileged -v ./test1/:/test1 --rm -it fedora /bin/bash
+docker run --device=/dev/sdX* --privileged -v $(pwd)/test1/:/test1 --rm -it fedora /bin/bash
 ```
 
 # Prepare env
@@ -24,7 +24,7 @@ EOF
  Create iso:
 ```{r, engine='bash', count_lines}
 dnf install livecd-tools spin-kickstarts -y
-cp -qa /usr/share/spin-kickstarts .
+cp -a /usr/share/spin-kickstarts .
 cp -ra alexz-live-xfce.ks spin-kickstarts/
 pushd spin-kickstarts
 livecd-creator --verbose --config=alexz-live-xfce.ks --fslabel=alexz_fedora26 --cache=/test1/cache/live --tmpdir=/test1/temp/ --releasever=26 --compression-type=lz4
@@ -34,7 +34,7 @@ livecd-iso-to-pxeboot spin-kickstarts/alexz_fedora26.iso
 ```
 # Write 2 usb:
 ```{r, engine='bash', count_lines}
- livecd-iso-to-disk --format --reset-mbr --overlay-size-mb 2048 spin-kickstarts/alexz_fedora26.iso /dev/sdX
+ livecd-iso-to-disk --format --reset-mbr --overlay-size-mb 2048 --livedir fedora26_liveos spin-kickstarts/alexz_fedora26.iso /dev/sdX
 ```
 
 

@@ -9,6 +9,13 @@ UserParameter=nvidia.smi.guery[*],bash -c '/etc/zabbix/get_nvidia_gpus.py --mode
 UserParameter=nvidia.smi.discovery,bash -c '/etc/zabbix/get_nvidia_gpus.py --mode discovery'
 ```
 
+# Openwrt ping:
+Manual:
+```
+opkg install sudo zabbix-agentd
+echo "zabbix ALL=(root) NOPASSWD: /bin/ping" >> /etc/sudoers.d/zabbix
+```
+
 # TODO
 
 rewrite with

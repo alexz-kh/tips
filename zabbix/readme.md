@@ -11,6 +11,8 @@ UserParameter=nvidia.smi.discovery,bash -c '/etc/zabbix/get_nvidia_gpus.py --mod
 
 # Openwrt ping:
 Manual:
+
+[with_wifi](https://blog.xsk.in/it/monitoring-openwrt-v-zabbix/590)
 ```
 opkg install sudo zabbix-agentd
 echo "zabbix ALL=(root) NOPASSWD: /bin/ping" >> /etc/sudoers.d/zabbix

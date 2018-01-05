@@ -42,9 +42,6 @@ RUN set -xe ; cd /etc/apt/ && echo > sources.list \
 	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse" >> sources.list \
 	&& apt update && apt upgrade -y \
 	&& apt install screen vim wget curl python-pip python3-pip python-virtualenv python3-virtualenv python-yaml -y \
-#https://downloads.chef.io/chefdk
-	&& cd /root/ && wget https://packages.chef.io/files/stable/chefdk/2.4.17/ubuntu/16.04/chefdk_2.4.17-1_amd64.deb \
-	&& dpkg -i chefdk_2.4.17-1_amd64.deb \
 	&& apt clean
 
 

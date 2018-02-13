@@ -41,7 +41,7 @@ RUN set -xe ; cd /etc/apt/ && echo > sources.list \
 	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse" >> sources.list \
 	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse" >> sources.list \
 	&& apt update && apt upgrade -y \
-	&& apt install screen vim wget curl python-pip python3-pip python-virtualenv python3-virtualenv python-yaml -y \
+	&& apt install screen vim wget curl python-pip python3-pip python-virtualenv python3-virtualenv python-yaml git-core -y \
 	&& apt clean
 
 

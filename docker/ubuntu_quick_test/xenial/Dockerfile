@@ -47,7 +47,7 @@ RUN cd /etc/apt/ && echo > sources.list \
   && apt-get install -y vim-tiny git-core screen wget curl \
   && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml
 
-RUN pip -U pip
+RUN pip install -U pip
 # Cleanup.
 RUN apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 \
     ppp pppconfig pppoeconf popularity-contest cpp gcc g++ libssl-doc

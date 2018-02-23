@@ -1,5 +1,10 @@
 FROM ubuntu:16.04
 
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true \
+    LANG=C.UTF-8 \
+    LANGUAGE=$LANG
+SHELL ["/bin/bash", "-xec"]
 # a few minor docker-specific tweaks
 # see https://github.com/docker/docker/blob/master/contrib/mkimage/debootstrap
 RUN set -xe \
@@ -26,28 +31,32 @@ RUN set -xe \
 	\
 	&& echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > /etc/apt/apt.conf.d/docker-recommends
 
-
-# delete all the apt list files since they're big and get stale quickly
-RUN rm -rf /var/lib/apt/lists/*
-
 # make systemd-detect-virt return "docker"
 # See: https://github.com/systemd/systemd/blob/aa0c34279ee40bce2f9681b496922dedbadfca19/src/basic/virt.c#L434
 RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
 
-# enable the universe
-#RUN sed -i 's/^#\s*\(deb.*universe\)$/\1/g' /etc/apt/sources.list
-RUN set -xe ; cd /etc/apt/ && echo > sources.list \
-	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse" >> sources.list \
-	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse" >> sources.list \
-	&& echo "deb http://ua.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse" >> sources.list \
-	&& apt update && apt upgrade -y \
-	&& apt install screen vim wget curl python-pip python3-pip python-virtualenv python3-virtualenv python-yaml git-core -y \
-	&& apt clean
 
+RUN cd /etc/apt/ && echo > sources.list \
+  && echo "deb [arch=amd64] http://ua.archive.ubuntu.com/ubuntu xenial main restricted universe multiverse" >> sources.list \
+  && echo "deb [arch=amd64] http://ua.archive.ubuntu.com/ubuntu xenial-updates main restricted universe multiverse" >> sources.list \
+  && echo "deb [arch=amd64] http://ua.archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse" >> sources.list \
+  && echo 'Acquire::Languages "none";' > apt.conf.d/docker-no-languages \
+  && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
+  && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
+  && apt-get update && apt-get  upgrade -y \
+  && apt-get install -y vim-tiny git-core screen wget curl \
+  && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml
+
+RUN pip -U pip
+# Cleanup.
+RUN apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 \
+    ppp pppconfig pppoeconf popularity-contest cpp gcc g++ libssl-doc
+RUN apt-get -y autoremove; apt-get -y clean;
+RUN rm -rf /root/.cache
+RUN rm -rf /var/lib/apt/lists/*
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
 
-
 # Build:
-# docker build -t ubuntu_16_quick_test .
+# docker build --no-cache -t ubuntu_16_quick_test:latest .

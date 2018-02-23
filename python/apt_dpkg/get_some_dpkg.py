@@ -52,25 +52,25 @@ def all_installed():
   return pkgs
 
 
-if __name__ == '__main__':                                                      
+if __name__ == '__main__':
     apt_pkg.init()
     apt_pkg.init_config()
     apt_pkg.init_system()
-    
+
     all_cache = apt_pkg.Cache()
-    
+
     cache = apt.Cache()
     #cache.update()
     cache.open()
     #dcache = apt_pkg.DepCache(apt_pkg.Cache())
-    
-    
+
+
     installed=all_installed()
     filtered_pkgs,all_pkgs=zz2()
-    
+
     print("Installed count: {}".format(len(all_pkgs.keys())))
     print("Sorted count: {}".format(len(filtered_pkgs.keys())))
     print("Sorted list:\n")
     ppr.pprint(filtered_pkgs)
-    
+
     sys.exit(0)

@@ -44,13 +44,13 @@ RUN cd /etc/apt/ && echo > sources.list \
   && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
   && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
   && apt-get update && apt-get  upgrade -y \
-  && apt-get install -y vim-tiny git-core screen wget curl \
-  && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml
+  && apt-get install -y vim git-core screen wget curl \
+  && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml autoconf build-essential
 
 RUN pip install -U pip
 # Cleanup.
-RUN apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 \
-    ppp pppconfig pppoeconf popularity-contest cpp gcc g++ libssl-doc
+#RUN apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 \
+#    ppp pppconfig pppoeconf popularity-contest cpp gcc g++ libssl-doc
 RUN apt-get -y autoremove; apt-get -y clean;
 RUN rm -rf /root/.cache
 RUN rm -rf /var/lib/apt/lists/*

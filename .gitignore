@@ -1,0 +1,4 @@
+.pyc
+.pyo
+salt_env/scripts
+salt_env/reclass

@@ -44,7 +44,7 @@ RUN cd /etc/apt/ && echo > sources.list \
   && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
   && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
   && apt-get update && apt-get  upgrade -y \
-  && apt-get install -y vim git-core screen wget curl \
+  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo \
   && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml autoconf build-essential
 
 RUN pip install -U pip

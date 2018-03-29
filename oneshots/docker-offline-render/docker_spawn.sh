@@ -3,10 +3,15 @@
 code_tag=testing
 
 volumes=" -v $(pwd):/test1 -v $(pwd)/mcp-offline-model:/srv/salt/reclass -v $(pwd)/salt-formulas-scripts:/srv/salt/scripts "
-docker_image="ubuntu_16_quick_test"
+docker_image="ubuntu_16_quick_test:latest"
 opts=" ${volumes} -u root:root --hostname=apt01 --ulimit nofile=4096:8192 --cpus=2"
 
 offline_model="https://github.com/Mirantis/mcp-offline-model"
+
+# Flow
+# _prepare
+# docker_run
+# run_in_docker
 
 function _prepare(){
   if [[ ! -d mcp-offline-model ]]; then
@@ -43,6 +48,8 @@ function docker_run(){
 
 
 function run_in_docker(){
+
+  echo "APT::Get::AllowUnauthenticated \"true\";" > apt.conf.d/AllowUnauthenticated
   set -x
   # https://raw.githubusercontent.com/Mirantis/mcp-common-scripts/master/mirror-image/salt-bootstrap.sh
   #

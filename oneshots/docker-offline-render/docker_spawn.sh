@@ -50,25 +50,22 @@ function docker_run_apt01(){
   docker run --rm ${opts} --hostname=apt01 -it ${docker_image} /bin/bash
 }
 
-
 function _prepare_apt01(){
-  set -x
-  # https://raw.githubusercontent.com/Mirantis/mcp-common-scripts/master/mirror-image/salt-bootstrap.sh
-  #
 
+  set -x
   cp -rav packer-templates/mirror-image/files/* /
   rm -vf salt-formulas-scripts/.salt-master-setup.sh.passed
-  # 
+  #
   export CLUSTER_NAME="mcp-offline"
   export FORMULA_VERSION=testing # from where install salt-formulas
   export PACKER_OFFLINE_BUILD=true
+  # https://raw.githubusercontent.com/Mirantis/mcp-common-scripts/master/mirror-image/salt-bootstrap.sh
   bash -x packer-templates/mirror-image/scripts/salt_bootstrap.sh || true
   salt-call saltutil.clear_cache  && salt-call saltutil.refresh_pillar && salt-call saltutil.sync_all
   echo "DONE _prepare_apt01"
 }
 
 function run_in_docker(){
-
 
   echo "APT::Get::AllowUnauthenticated \"true\";" > /etc/apt/apt.conf.d/AllowUnauthenticated
   echo "deb [arch=amd64] http://apt.mirantis.com/xenial testing extra" > /etc/apt/sources.list.d/temp-mcp_salt.list
@@ -78,6 +75,8 @@ function run_in_docker(){
 
   if [[ $(hostname -f ) == "apt01" ]]; then
   _prepare_apt01
+  else
+    echo "wrong hostname?"
   fi
 #
 }

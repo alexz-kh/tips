@@ -135,19 +135,21 @@ def read_yaml(y_file):
     sys.exit(1)
 
 def save_yaml(save_yaml, to_file):
-  _dirp = os.path.dirname(to_file)
-  if not os.path.exist(_dirp):
-    LOG.warning("Creating dir:{}".format(_dirp))
-    os.makedirs(_dirp)
+  if not os.path.exists(os.path.dirname(to_file)):
+    try:
+      os.makedirs(os.path.dirname(to_file))
+    except OSError as exc:
+      LOG.error("Unable create:{}".format(to_file))
+      sys.exit(1)
   with open(to_file, 'w') as f:
     f.write(yaml.dump(save_yaml, default_flow_style=False))
-  LOG.info("{} file saved".format(to_file))
+    LOG.info("{} file saved".format(to_file))
 
 def list_get (l, idx, default=None):
   try:
     return l[idx]
   except IndexError:
-    LOG.error("No such index:{}".format(idx))
+    LOG.error("No such index:{}\nReturning default:{}".format(idx,default))
     return default
 
 

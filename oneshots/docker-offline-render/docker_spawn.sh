@@ -70,7 +70,8 @@ function run_in_docker(){
   echo "APT::Get::AllowUnauthenticated \"true\";" > /etc/apt/apt.conf.d/AllowUnauthenticated
   echo "deb [arch=amd64] http://apt.mirantis.com/xenial testing extra" > /etc/apt/sources.list.d/temp-mcp_salt.list
   echo "deb [arch=amd64] http://apt.mirantis.com/xenial testing salt"  >> /etc/apt/sources.list.d/temp-mcp_salt.list
-  apt-get update && apt-get intall reclass -y
+  apt-get update
+  apt-get intall reclass gnupg jq -y
   rm -v /etc/apt/sources.list.d/temp-mcp_salt.list
 
   if [[ $(hostname -f ) == "apt01" ]]; then

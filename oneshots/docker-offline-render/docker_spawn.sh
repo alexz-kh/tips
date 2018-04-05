@@ -2,7 +2,9 @@
 
 code_tag=testing
 
-volumes=" -v $(pwd):/test1 -v $(pwd)/mcp-offline-model:/srv/salt/reclass -v $(pwd)/salt-formulas-scripts:/srv/salt/scripts "
+srv_volumes=" -v /home/alexz/work/imgs/share/trash/dockers/volumes:/srv/volumes/aptly"
+nicev=" -v $(pwd)/_screenrc:/root/.screenrc:ro -v ${HOME}/.vimrc:/root/.vimrc:ro -v ${HOME}/.vim:/root/.vim:ro"
+volumes="${nicev} -v $(pwd):/test1 -v $(pwd)/mcp-offline-model:/srv/salt/reclass -v $(pwd)/salt-formulas-scripts:/srv/salt/scripts "
 docker_image="ubuntu_16_quick_test:latest"
 opts=" ${volumes} -u root:root --ulimit nofile=4096:8192 --cpus=2"
 
@@ -47,7 +49,13 @@ function docker_run_cfg01(){
 
 function docker_run_apt01(){
   #docker run --rm ${opts} -it docker-offline-render:2018.1 /bin/bash
-  docker run --rm ${opts} --hostname=apt01 -it ${docker_image} /bin/bash
+  docker run --rm ${srv_volumes} ${opts} --hostname=apt01 -it ${docker_image} /bin/bash
+}
+
+function _local_refresh(){
+  salt-call saltutil.clear_cache
+  salt-call saltutil.refresh_pillar
+  salt-call saltutil.sync_all
 }
 
 function _prepare_apt01(){
@@ -61,7 +69,15 @@ function _prepare_apt01(){
   export PACKER_OFFLINE_BUILD=true
   # https://raw.githubusercontent.com/Mirantis/mcp-common-scripts/master/mirror-image/salt-bootstrap.sh
   bash -x packer-templates/mirror-image/scripts/salt_bootstrap.sh || true
-  salt-call saltutil.clear_cache  && salt-call saltutil.refresh_pillar && salt-call saltutil.sync_all
+  _local_refresh
+#
+  salt-call -l debug state.apply linux.system.repo
+  salt-call -l debug state.apply linux.system.apt
+#
+  apt-get install -y salt-formula-debmirror
+  _local_refresh
+#
+
   echo "DONE _prepare_apt01"
 }
 
@@ -88,7 +104,6 @@ function run_in_docker(){
 
 
 #docker pull ubuntu:16.04
-#git clone git clone ssh://azvyagintsev@review.fuel-infra.org:29418/mk/packer-templates
 #docker run -v $(pwd):/tests -u root:root --hostname=apt01 --ulimit nofile=4096:8192 --cpus=2 --rm -it  ubuntu:16.04 /bin/bash
 ## After it, you will be dropped into docker shell
 ## set env variables

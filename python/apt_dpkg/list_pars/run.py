@@ -16,7 +16,8 @@ LOG.basicConfig(level=LOG.DEBUG, datefmt='%Y-%m-%d %H:%M:%S',
                 format='%(asctime)-15s - [%(levelname)s] %(module)s:%(lineno)d: '
                        '%(message)s', )
 
-cfgFile = os.environ.get("GEN_CONFIG_FILE", "config.yaml")
+cfgFile = os.environ.get("CONFIG_FILE", "config_infra.yaml")
+SAVE_YAML = os.environ.get("SAVE_YAML", False)
 
 try:
   import ipdb
@@ -63,7 +64,6 @@ def get_current_one_target(_target):
   target_branches = g_target.get('branches_all', [])
   # Some projects have more then one branch for process.
   extra_branches = g_target.get('project_custom_branches', {}).values()
-  gerrit_host = "review.fuel-infra.org"
   resulted_dict = {}
 
   def _get_list(g_branches, _prefix):
@@ -74,6 +74,7 @@ def get_current_one_target(_target):
     :param _prefix:
     :return:
     """
+    gerrit_host = cfg['gerrit_host']
     fd, t_path = tempfile.mkstemp()
     branches_string = ""
     clean_result = {}
@@ -168,6 +169,7 @@ def parse_list(list_file):
     try:
       rez,shift = process_one(i,len(l1))
       if rez['name'] in pkgs.keys():
+        # TODO , catch sha's and etc for duplicates
         LOG.warning('Duplicate pkgs:{}'.format(rez['name']))
         pkgs[rez['name']]['version'] = pkgs[rez['name']]['version'] +  rez['version']
       else:
@@ -192,20 +194,10 @@ def parse_list(list_file):
 if __name__ == '__main__':
   # HOVNOSCRIPT!
   """
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/nightly/main/binary-amd64/Packages.gz | zcat > os.pike.nightly
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/proposed/main/binary-amd64/Packages.gz | zcat > os.pike.proposed
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/testing/main/binary-amd64/Packages.gz | zcat > os.pike.testing
-  curl https://mirror.mirantis.com/proposed/openstack-pike/xenial/dists/xenial/main/binary-amd64/Packages.gz | zcat > mirror.proposed
-  #
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/nightly/salt/binary-amd64/Packages.gz | zcat > salt.nightly
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/testing/salt/binary-amd64/Packages.gz | zcat > salt.testing
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/proposed/salt/binary-amd64/Packages.gz | zcat > salt.proposed
-  #
-  curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/nightly/extra/binary-amd64/Packages.bz2 | zcat > extra.nightly
   """
   cfg = ut.read_yaml(cfgFile)
   list_file = ut.list_get(sys.argv, 1, 'os.pike.nightly')
-  save_mask = os.path.join("rez_" + list_file ,"rez_" + list_file )
+  save_mask = os.path.join("rez_" + list_file.replace('/','_') + "_" + cfgFile.replace('.yaml',"") ,"rez_" + list_file.replace('/','_') )
   # save_to configs
   # will be masked like:
   # dump_to_file = NewGitrepoYamlMask + gen_cfgFile['targets'].keys() + '.yaml'
@@ -215,10 +207,45 @@ if __name__ == '__main__':
   OldGitrepoCfgFile = cfg.get(
       "old_gitrepoCfgFileMask", "old_gitrepoCfgFileMask")
 
-  #get_current_git_list = get_current_list(cfg['targets'])
+  current_git_list = get_current_list(cfg['targets'])
 
   deb_pkgs = parse_list(list_file)
 
+  # Check that deb exist in git's. KISS
+  _specs = []
+  for k in current_git_list['specs'].keys(): _specs.append(k.split('/')[-1])
+  _openstack = []
+  for k in current_git_list['openstack'].keys(): _openstack.append(k.split('/')[-1])
+  _src = []
+  for p in deb_pkgs.keys(): _src.append((deb_pkgs[p]['source']))
+  _unic_src = set(_src)
+
+  pkgs_not_spec = []
+  pkgs_not_src = []
+  for p in _unic_src:
+    if p not in _specs:
+      if p in cfg['targets']['specs'].get('project_blacklist',[]):
+        LOG.info("Blacklisted from specs:{}".format(p))
+        continue
+      LOG.error("Not in spec:{}".format(p))
+      pkgs_not_spec.append(p)
+    if p not in _openstack:
+      if p in cfg['targets']['openstack'].get('project_blacklist',[]):
+        LOG.info("Blacklisted from openstack src:{}".format(p))
+        continue
+      LOG.error("Not in ospenstack src:{}".format(p))
+      pkgs_not_src.append(p)
+
+  pkgs_not_src.sort()
+  pkgs_not_spec.sort()
+  ut.save_yaml(pkgs_not_src, "{}_pkgs_not_src.yaml".format(save_mask))
+  ut.save_yaml(pkgs_not_spec, "{}_pkgs_not_spec.yaml".format(save_mask))
+  ipdb.set_trace()
+
+  ##
+  if not SAVE_YAML:
+    LOG.info("Not going to save anything,Ciao!")
+    sys.exit(0)
   # save all
   ut.save_yaml(deb_pkgs, "{}_all.yaml".format(save_mask))
   # with any err

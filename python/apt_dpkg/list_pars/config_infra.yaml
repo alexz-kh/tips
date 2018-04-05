@@ -1,3 +1,4 @@
+gerrit_host: "azvyagintsev@review.fuel-infra.org"
 targets:
   openstack:
     prefixes:
@@ -5,6 +6,8 @@ targets:
 #     - "openstack-build/"
     branches_all:
       - "mcp/pike"
+    # those project doesn't have sources.Mostly - not openstack packages
+    project_blacklist1:
 #    project_custom_branches:
 #      openstack/fuel-nailgun-extension-converted-serializers: ["stable/mitaka"]
 #      openstack/fuel-nailgun-extension-iac: [ "stable/mitaka" ]
@@ -14,4 +17,3 @@ targets:
      - "packaging/specs/"
     branches_all:
       - "mcp/pike"
-

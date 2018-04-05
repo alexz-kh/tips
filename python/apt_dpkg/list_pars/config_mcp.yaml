@@ -5,8 +5,8 @@ targets:
      - "packaging/sources/"
     branches_all:
       - "mcp/pike"
-    project_blacklist: # mostly,system forks,which have only specs
-# ok
+    # mostly,system forks,which have only specs, w\o sources
+    project_blacklist:
       - alembic
       - angular.js
       - asn1crypto
@@ -18,9 +18,7 @@ targets:
       - d3
       - debhelper
       - defusedxml
-##
-      - designate-dashboard # c
-#ok
+#      - designate-dashboard # c
       - device-tree-compiler
       - dh-autoreconf
       - django-nose
@@ -80,150 +78,147 @@ targets:
       - prometheus-bin
       - pycodestyle
       - pygments
-# end
-# not checked yet
-#      - pyinotify
-#      - pyopenssl
-#      - pyparsing
-#      - pyroute2
-#      - pytest
-#      - pytest-runner
-#      - python-amqp
-#      - python-babel
-#      - python-bcrypt
-#      - python-brick-cinderclient-ext
-#      - python-cachetools
-#      - python-castellan
-#      - python-ceilometermiddleware
-#      - python-cffi
-#      - python-cliff
-#      - python-congressclient
-#      - python-cotyledon
-#      - python-coverage
-#      - python-cryptography
-#      - python-cryptography-vectors
-#      - python-cursive
-#      - python-daiquiri
-#      - python-deprecation
-#      - python-diskimage-builder
-#      - python-django
-#      - python-django-babel
-#      - python-django-compressor
-#      - python-django-openstack-auth
-#      - python-dogpile.cache
-#      - python-eventlet
-#      - python-fastimport
-#      - python-fixtures
-#      - python-flake8
-#      - python-gabbi
-#      - python-git
-#      - python-glance-store
-#      - python-gnocchiclient
-#      - python-hacking
-#      - python-hypothesis
-#      - python-idna
-#      - python-imagesize
-#      - python-ironic-inspector-client
-#      - python-ironic-lib
-#      - python-kafka
-#      - python-keyring
-#      - python-keystoneauth1
-#      - python-keystonemiddleware
-#      - python-ldappool
-#      - python-lz4
-#      - python-magnumclient
-#      - python-mccabe
-#      - python-memcache
-#      - python-microversion-parse
-#      - python-mistralclient
-#      - python-mock
-#      - python-neutron-lib
-#      - python-openstackdocstheme
-#      - python-openstacksdk
-#      - python-os-api-ref
-#      - python-os-brick
-#      - python-os-client-config
-#      - python-os-testr
-#      - python-os-traits
-#      - python-os-vif
-#      - python-os-win
-#      - python-os-xenapi
-#      - python-osc-lib
-#      - python-oslo.cache
-#      - python-oslo.concurrency
-#      - python-oslo.config
-#      - python-oslo.context
-#      - python-oslo.db
-#      - python-oslo.i18n
-#      - python-oslo.log
-#      - python-oslo.messaging
-#      - python-oslo.middleware
-#      - python-oslo.policy
-#      - python-oslo.privsep
-#      - python-oslo.reports
-#      - python-oslo.rootwrap
-#      - python-oslo.serialization
-#      - python-oslo.service
-#      - python-oslo.utils
-#      - python-oslo.versionedobjects
-#      - python-oslo.vmware
-#      - python-oslotest
-#      - python-osprofiler
-#      - python-ovsdbapp
-#      - python-passlib
-#      - python-pbr
-#      - python-pecan
-#      - python-positional
-#      - python-py
-#      - python-pycadf
-#      - python-pyeclib
-#      - python-pyghmi
-#      - python-pykmip
-#      - python-pyldap
-#      - python-pymysql
-#      - python-pypowervm
-#      - python-reno
-#      - python-requests-mock
-#      - python-requestsexceptions
-#      - python-rfc3986
-#      - python-saharaclient
-#      - python-scipy
-#      - python-scrypt
-#      - python-selenium
-#      - python-senlinclient
-#      - python-statsd
-#      - python-taskflow
-#      - python-tenacity
-#      - python-tinyrpc
-#      - python-tooz
-#      - python-troveclient
-#      - python-typing
-#      - python-urllib3
-#      - python-weakrefmethod
-#      - python-webob
-#      - python-wsgi-intercept
-#      - python-xstatic-angular
-#      - python-xstatic-angular-bootstrap
-#      - python-xstatic-angular-fileupload
-#      - python-xstatic-angular-gettext
-#      - python-xstatic-angular-schema-form
-#      - python-xstatic-bootstrap-scss
-#      - python-xstatic-bootswatch
-#      - python-xstatic-d3
-#      - python-xstatic-font-awesome
-#      - python-xstatic-jasmine
-#      - python-xstatic-jquery
-#      - python-xstatic-jquery-ui
-#      - python-xstatic-jsencrypt
-#      - python-xstatic-mdi
-#      - python-xstatic-objectpath
-#      - python-xstatic-roboto-fontface
-#      - python-xstatic-smart-table
-#      - python-xstatic-term.js
-#      - python-xstatic-tv4
-#      - python-zaqarclient
-#      - python-zunclient
-# ok
+      - pyinotify
+      - pyopenssl
+      - pyparsing
+      - pyroute2
+      - pytest
+      - pytest-runner
+      - python-amqp
+      - python-babel
+      - python-bcrypt
+      - python-brick-cinderclient-ext
+      - python-cachetools
+      - python-castellan
+      - python-ceilometermiddleware
+      - python-cffi
+      - python-cliff
+      - python-congressclient
+      - python-cotyledon
+      - python-coverage
+      - python-cryptography
+      - python-cryptography-vectors
+      - python-cursive
+      - python-daiquiri
+      - python-deprecation
+      - python-diskimage-builder
+      - python-django
+      - python-django-babel
+      - python-django-compressor
+      - python-django-openstack-auth
+      - python-dogpile.cache
+      - python-eventlet
+      - python-fastimport
+      - python-fixtures
+      - python-flake8
+      - python-gabbi
+      - python-git
+      - python-glance-store
+#      - python-gnocchiclient # ISSUE!
+      - python-hacking
+      - python-hypothesis
+      - python-idna
+      - python-imagesize
+      - python-ironic-inspector-client
+      - python-ironic-lib
+      - python-kafka # ISSUE!
+      - python-keyring
+      - python-keystoneauth1
+      - python-keystonemiddleware
+      - python-ldappool
+      - python-lz4
+      - python-magnumclient
+      - python-mccabe
+      - python-memcache
+      - python-microversion-parse
+      - python-mistralclient
+      - python-mock
+      - python-neutron-lib
+      - python-openstackdocstheme
+      - python-openstacksdk
+      - python-os-api-ref
+      - python-os-brick
+      - python-os-client-config
+      - python-os-testr
+      - python-os-traits
+      - python-os-vif
+      - python-os-win
+      - python-os-xenapi
+      - python-osc-lib
+      - python-oslo.cache
+      - python-oslo.concurrency
+      - python-oslo.config
+      - python-oslo.context
+      - python-oslo.db
+      - python-oslo.i18n
+      - python-oslo.log
+      - python-oslo.messaging
+      - python-oslo.middleware
+      - python-oslo.policy
+      - python-oslo.privsep
+      - python-oslo.reports
+      - python-oslo.rootwrap
+      - python-oslo.serialization
+      - python-oslo.service
+      - python-oslo.utils
+      - python-oslo.versionedobjects
+      - python-oslo.vmware
+      - python-oslotest
+      - python-osprofiler
+      - python-ovsdbapp
+      - python-passlib
+      - python-pbr
+      - python-pecan
+      - python-positional
+      - python-py
+      - python-pycadf
+      - python-pyeclib
+      - python-pyghmi
+      - python-pykmip
+      - python-pyldap
+      - python-pymysql
+      - python-pypowervm
+      - python-reno
+      - python-requests-mock
+      - python-requestsexceptions
+      - python-rfc3986
+      - python-saharaclient
+      - python-scipy
+      - python-scrypt
+      - python-selenium
+      - python-senlinclient
+      - python-statsd
+      - python-taskflow
+      - python-tenacity
+      - python-tinyrpc
+      - python-tooz
+      - python-troveclient
+      - python-typing
+      - python-urllib3
+      - python-weakrefmethod
+      - python-webob
+      - python-wsgi-intercept
+      - python-xstatic-angular
+      - python-xstatic-angular-bootstrap
+      - python-xstatic-angular-fileupload
+      - python-xstatic-angular-gettext
+      - python-xstatic-angular-schema-form
+      - python-xstatic-bootstrap-scss
+      - python-xstatic-bootswatch
+      - python-xstatic-d3
+      - python-xstatic-font-awesome
+      - python-xstatic-jasmine
+      - python-xstatic-jquery
+      - python-xstatic-jquery-ui
+      - python-xstatic-jsencrypt
+      - python-xstatic-mdi
+      - python-xstatic-objectpath
+      - python-xstatic-roboto-fontface
+      - python-xstatic-smart-table
+      - python-xstatic-term.js
+      - python-xstatic-tv4
+      - python-zaqarclient
+      - python-zunclient
       - pyyaml # ARM rebuild ;(
       - qemu
       - rabbitmq-server

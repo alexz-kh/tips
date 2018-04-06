@@ -114,7 +114,7 @@ def execute(*cmd, **kwargs):
                 raise
             else:
                 time.sleep(10)
-
+# end of copy-paste
 
 def read_file(text_file):
   if not os.path.isfile(text_file):
@@ -152,5 +152,9 @@ def list_get (l, idx, default=None):
     LOG.error("No such index:{}\nReturning default:{}".format(idx,default))
     return default
 
+def str2bool(v):
+  if type(v) == bool:
+    return v
+  return v.lower() in ("yes", "true", "y", "1")
 
-# end of copy-paste
+

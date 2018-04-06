@@ -6,6 +6,9 @@ curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/propos
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/testing/main/binary-amd64/Packages.gz | zcat > apt.os.pike.testing
 curl https://mirror.mirantis.com/proposed/openstack-pike/xenial/dists/xenial/main/binary-amd64/Packages.gz | zcat > mirror.os.pike.proposed
 #
+curl http://apt.mirantis.com.s3.amazonaws.com/xenial/openstack/pike/dists/2018.3.1/main/binary-amd64/Packages.gz | zcat > apt.os.pike.2018.3.1
+
+#
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/nightly/salt/binary-amd64/Packages.gz | zcat > apt.salt.nightly
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/testing/salt/binary-amd64/Packages.gz | zcat > apt.salt.testing
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/proposed/salt/binary-amd64/Packages.gz | zcat > apt.salt.proposed

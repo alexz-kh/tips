@@ -10,7 +10,7 @@ targets:
       - alembic
       - angular.js
       - asn1crypto
-      - bandit
+      - bandit # maintained
       - beautifulsoup4
       - betamax
       - case
@@ -18,7 +18,7 @@ targets:
       - d3
       - debhelper
       - defusedxml
-#      - designate-dashboard # c
+#      - designate-dashboard # ISSUE
       - device-tree-compiler
       - dh-autoreconf
       - django-nose
@@ -27,22 +27,22 @@ targets:
       - dpdk
       - dulwich
       - erlang
-      - erlang-sd-notify
+      - erlang-sd-notify     # should be removed
       - exabgp
-      - fluent-logger-python
+      - fluent-logger-python # ???
       - fonts-font-awesome
       - fonts-materialdesignicons-webfont
       - fonts-roboto-fontface
       - freezegun
-      - heat-agents
-      - heat-translator
-      - horizon-contrail-panels
-      - horizon-mirantis-theme # double check!
-      - horizon-overrides-plugin
+      - heat-agents              # ISSUE - should be removed?
+      - heat-translator          # ISSUE - should be removed?
+      - horizon-contrail-panels  # drivetrain ISSUE
+      - horizon-mirantis-theme   # drivetrain ISSUE
+      - horizon-overrides-plugin # drivetrain ISSUE
       - ipxe-qemu-256k-compat
-      - ironic-inspector
-      - ironic-python-agent
-      - ironic-ui
+      - ironic-inspector         # ISSUE: not a product,skipped
+      - ironic-python-agent      # ISSUE: not a product,skipped
+      - ironic-ui                # ISSUE: not a product,skipped
       - jqueryui
       - kombu
       - liberasurecode
@@ -56,22 +56,22 @@ targets:
       - libvirt-python
       - migrate
       - mod-wsgi
-      - monasca-statsd
+      - monasca-statsd   # ISSUE: python-designate suggest
       - mysql-wsrep-5.6
       - ndg-httpsclient
-      - nettle
-      - networking-bagpipe
-      - networking-baremetal
-      - networking-midonet
-      - networking-odl
-      - networking-ovn
-      - networking-sfc
-      - neutron-dynamic-routing
-      - neutron-fwaas-dashboard
-      - neutron-lbaas-dashboard
+      - nettle               # qemu\netropn req
+      - networking-bagpipe   # ISSUE: signatov, not a product?
+      - networking-baremetal # ISSUE: signatov, not a product?
+      - networking-midonet   # ISSUE: signatov, not a product?
+      - networking-odl       # ISSUE: signatov, not a product?
+      - networking-ovn       # ISSUE: signatov, not a product?
+      - networking-sfc       # ISSUE: signatov, not a product?
+      - neutron-dynamic-routing # ISSUE:
+      - neutron-fwaas-dashboard # ISSUE:
+      - neutron-lbaas-dashboard # ISSUE:
       - novnc
       - openstack-pkg-tools
-      - openvswitch
+      - openvswitch             # ISSUE:
       - oslo-sphinx
       - pandas
       - paramiko
@@ -87,25 +87,25 @@ targets:
       - python-amqp
       - python-babel
       - python-bcrypt
-      - python-brick-cinderclient-ext
+      - python-brick-cinderclient-ext # ISSUE
       - python-cachetools
       - python-castellan
-      - python-ceilometermiddleware
+      - python-ceilometermiddleware   # ISSUE
       - python-cffi
       - python-cliff
-      - python-congressclient
+      - python-congressclient         # ISSUE not a product?
       - python-cotyledon
       - python-coverage
       - python-cryptography
       - python-cryptography-vectors
       - python-cursive
-      - python-daiquiri
+      - python-daiquiri               # ISSUE: gnochi req!
       - python-deprecation
       - python-diskimage-builder
       - python-django
       - python-django-babel
       - python-django-compressor
-      - python-django-openstack-auth
+      - python-django-openstack-auth # ISSUE deprecated?
       - python-dogpile.cache
       - python-eventlet
       - python-fastimport
@@ -113,61 +113,61 @@ targets:
       - python-flake8
       - python-gabbi
       - python-git
-      - python-glance-store
+      - python-glance-store         # ISSUE wrong source name python-glance-store
 #      - python-gnocchiclient # ISSUE!
       - python-hacking
       - python-hypothesis
       - python-idna
       - python-imagesize
-      - python-ironic-inspector-client
-      - python-ironic-lib
-      - python-kafka # ISSUE!
+      - python-ironic-inspector-client # ISSUE:
+      - python-ironic-lib              # ISSUE
+      - python-kafka
       - python-keyring
-      - python-keystoneauth1
-      - python-keystonemiddleware
+      - python-keystoneauth1        # ISSUE: => packaging/specs/python-keystoneauth1;   packaging/sources/keystoneauth
+      - python-keystonemiddleware   # ISSUE: => sources
       - python-ldappool
       - python-lz4
-      - python-magnumclient
+      - python-magnumclient # ISSUE: not product
       - python-mccabe
       - python-memcache
-      - python-microversion-parse
-      - python-mistralclient
+      - python-microversion-parse # ISSUE
+      - python-mistralclient      # ISSUE: not a product
       - python-mock
-      - python-neutron-lib
+      - python-neutron-lib        # ISSUE
       - python-openstackdocstheme
-      - python-openstacksdk
+      - python-openstacksdk      # ISSUE
       - python-os-api-ref
-      - python-os-brick
-      - python-os-client-config
-      - python-os-testr
-      - python-os-traits
-      - python-os-vif
+      - python-os-brick          # ISSUE
+      - python-os-client-config  # ISSUE
+      - python-os-testr          # ISSUE unit tests req
+      - python-os-traits         # ISSUE nova req
+      - python-os-vif            # ISSUE
       - python-os-win
       - python-os-xenapi
-      - python-osc-lib
-      - python-oslo.cache
-      - python-oslo.concurrency
-      - python-oslo.config
-      - python-oslo.context
-      - python-oslo.db
-      - python-oslo.i18n
-      - python-oslo.log
-      - python-oslo.messaging
-      - python-oslo.middleware
-      - python-oslo.policy
-      - python-oslo.privsep
-      - python-oslo.reports
-      - python-oslo.rootwrap
-      - python-oslo.serialization
-      - python-oslo.service
-      - python-oslo.utils
-      - python-oslo.versionedobjects
-      - python-oslo.vmware
-      - python-oslotest
-      - python-osprofiler
-      - python-ovsdbapp
+      - python-osc-lib           # ISSUE
+      - python-oslo.cache       # ISSUE
+      - python-oslo.concurrency       # ISSUE
+      - python-oslo.config       # ISSUE
+      - python-oslo.context       # ISSUE
+      - python-oslo.db       # ISSUE
+      - python-oslo.i18n       # ISSUE
+      - python-oslo.log       # ISSUE
+      - python-oslo.messaging          # ISSUE
+      - python-oslo.middleware         # ISSUE
+      - python-oslo.policy             # ISSUE
+      - python-oslo.privsep            # ISSUE
+      - python-oslo.reports            # ISSUE
+      - python-oslo.rootwrap           # ISSUE
+      - python-oslo.serialization      # ISSUE
+      - python-oslo.service            # ISSUE
+      - python-oslo.utils              # ISSUE
+      - python-oslo.versionedobjects   # ISSUE
+      - python-oslo.vmware             # ISSUE
+      - python-oslotest                # ISSUE
+      - python-osprofiler              # ISSUE
+      - python-ovsdbapp                # ISSUE
       - python-passlib
-      - python-pbr
+      - python-pbr                     # ISSUE
       - python-pecan
       - python-positional
       - python-py
@@ -182,51 +182,51 @@ targets:
       - python-requests-mock
       - python-requestsexceptions
       - python-rfc3986
-      - python-saharaclient
+      - python-saharaclient            # ISSUE
       - python-scipy
       - python-scrypt
       - python-selenium
-      - python-senlinclient
+      - python-senlinclient         # ISSUE heat req
       - python-statsd
       - python-taskflow
       - python-tenacity
       - python-tinyrpc
-      - python-tooz
-      - python-troveclient
+      - python-tooz                 # ISSUE
+      - python-troveclient          # ISSUE heat req
       - python-typing
       - python-urllib3
       - python-weakrefmethod
       - python-webob
       - python-wsgi-intercept
-      - python-xstatic-angular
-      - python-xstatic-angular-bootstrap
-      - python-xstatic-angular-fileupload
-      - python-xstatic-angular-gettext
-      - python-xstatic-angular-schema-form
-      - python-xstatic-bootstrap-scss
-      - python-xstatic-bootswatch
-      - python-xstatic-d3
-      - python-xstatic-font-awesome
-      - python-xstatic-jasmine
-      - python-xstatic-jquery
-      - python-xstatic-jquery-ui
-      - python-xstatic-jsencrypt
-      - python-xstatic-mdi
-      - python-xstatic-objectpath
-      - python-xstatic-roboto-fontface
-      - python-xstatic-smart-table
-      - python-xstatic-term.js
-      - python-xstatic-tv4
-      - python-zaqarclient
-      - python-zunclient
+      - python-xstatic-angular        # ISSUE
+      - python-xstatic-angular-bootstrap         # ISSUE
+      - python-xstatic-angular-fileupload         # ISSUE
+      - python-xstatic-angular-gettext         # ISSUE
+      - python-xstatic-angular-schema-form         # ISSUE
+      - python-xstatic-bootstrap-scss         # ISSUE
+      - python-xstatic-bootswatch        # ISSUE
+      - python-xstatic-d3        # ISSUE
+      - python-xstatic-font-awesome        # ISSUE
+      - python-xstatic-jasmine        # ISSUE
+      - python-xstatic-jquery        # ISSUE
+      - python-xstatic-jquery-ui        # ISSUE
+      - python-xstatic-jsencrypt        # ISSUE
+      - python-xstatic-mdi        # ISSUE
+      - python-xstatic-objectpath        # ISSUE
+      - python-xstatic-roboto-fontface        # ISSUE
+      - python-xstatic-smart-table        # ISSUE
+      - python-xstatic-term.js        # ISSUE
+      - python-xstatic-tv4        # ISSUE
+      - python-zaqarclient        # ISSUE heat req
+      - python-zunclient        # ISSUE heat req
       - pyyaml # ARM rebuild ;(
-      - qemu
-      - rabbitmq-server
+      - qemu            # sys pkg
+      - rabbitmq-server # sys pkg
       - requests
       - requirejs
       - routes
       - ryu
-      - seabios
+      - seabios         # sys pkg
       - setuptools-scm
       - sphinx
       - sphinx-celery
@@ -235,11 +235,11 @@ targets:
       - sqlparse
       - stevedore
       - sushy
-      - td-agent-additional-plugins
-      - tosca-parser
+      - td-agent-additional-plugins # ISSUE fluentd req
+      - tosca-parser                # ISSUE heat translator
       - vine
       - voluptuous
-      - watchdog
+      - watchdog # sys pkg
       - websocket-client
       - websockify
 #    project_custom_branches:

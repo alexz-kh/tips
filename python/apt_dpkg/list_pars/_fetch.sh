@@ -14,6 +14,10 @@ curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/testing/salt/binary-a
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/proposed/salt/binary-amd64/Packages.gz | zcat > apt.salt.proposed
 #
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/nightly/extra/binary-amd64/Packages.gz | zcat > apt.extra.nightly
+curl http://apt.mirantis.com.s3.amazonaws.com/xenial/ceph/dists/2018.3.1/luminous/binary-amd64/Packages.gz | zcat > apt.ceph-luminous.2018.3.1
+
+# upstream
+
 
 
 popd

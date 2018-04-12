@@ -17,7 +17,7 @@ LOG.basicConfig(level=LOG.DEBUG, datefmt='%Y-%m-%d %H:%M:%S',
                        '%(message)s', )
 
 cfgFile = os.environ.get("CONFIG_FILE", "config_infra.yaml")
-SAVE_YAML = os.environ.get("SAVE_YAML", False)
+SAVE_YAML = ut.str2bool(os.environ.get("SAVE_YAML", False))
 GERRIT_CACHE = ut.str2bool((os.environ.get("GERRIT_CACHE", False)))
 
 try:
@@ -198,6 +198,7 @@ def parse_list(list_file):
 def check_deb_in_git(git_list):
     """
     Check that deb exist in git's. KISS
+    Whole structure hardcoded for `openstack` and `specs`
     """
     _specs = []
     for k in git_list['specs'].keys(): _specs.append(k.split('/')[-1])
@@ -222,6 +223,11 @@ def check_deb_in_git(git_list):
     # FIXME hardcoode
     _black_spec = cfg['targets']['specs'].get('project_blacklist', [])
     _black_src = cfg['targets']['openstack'].get('project_blacklist', [])
+    _git_src_prefix = cfg['targets']['openstack'].get('prefixes', [])[0]
+    _git_spec_prefix = cfg['targets']['specs'].get('prefixes', [])[0]
+    if len(cfg['targets']['openstack'].get('prefixes', [])) > 1 or len(cfg['targets']['specs'].get('prefixes', [])) > 1:
+        LOG.error("I cant work with multiply prefixes ;(")
+        sys.exit(1)
     for p in _n_src.keys():
         # Check that related deb pkg 'source:' in git specs
         if p in _black_spec and p in _specs:
@@ -232,11 +238,14 @@ def check_deb_in_git(git_list):
         else:
             _pkgs_with_spec.append(p)
             # God bless that source: == last part of string!
+            _specs_path = [k for k in git_list['specs'] if k.endswith(p)]
+            if len(_specs_path) > 1:
+                LOG.warning("Fix duplicate SPECS PATH manually:{}".format(_specs_path))
             _pkgs_nice[p] = {
                 'specs': {
-                    'path': [k for k in git_list['specs'] if k.endswith(p)],
+                    'path': _specs_path,
                     'Private-Mcp-Spec-Sha': _n_src[p]['Private-Mcp-Spec-Sha'],
-                    'branches': git_list['specs']['packaging/specs/{}'.format(p)]['branches'].keys()}}
+                    'branches': git_list['specs'][os.path.join(_git_spec_prefix,p)]['branches'].keys()}}
         # Check that related deb pkg 'source:' in git sources
         if p in _black_src and p in _openstack:
             LOG.info("Blacklisted from sources:{}".format(p))
@@ -252,11 +261,14 @@ def check_deb_in_git(git_list):
             # FIXME check for overwrite!
             _pkgs_nice[p]['source'] = [k for k in git_list['openstack'] if
                                        k.endswith(p)]
+            # Check for not work k.endswith magic
+            _src_path = [k for k in git_list['openstack'] if k.endswith(p)]
+            if len(_src_path) > 1:
+                LOG.warning("Fix duplicate SOURCE PATH manually:{}".format(_src_path))
             _pkgs_nice[p]['source'] = {
-                'source': {
-                    'path': [k for k in git_list['specs'] if k.endswith(p)],
+                    'path': _src_path,
                     'Private-Mcp-Code-Sha': _n_src[p]['Private-Mcp-Code-Sha'],
-                    'branches': git_list['openstack']['openstack/{}'.format(p)]['branches'].keys()}}
+                    'branches': git_list['openstack'][os.path.join(_git_src_prefix,p)]['branches'].keys()}
 
     rez = {'pkgs_no_src': sorted(_pkgs_no_src),
            'pkgs_no_spec': sorted(_pkgs_no_spec),

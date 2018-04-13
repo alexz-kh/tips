@@ -17,8 +17,10 @@ curl http://apt.mirantis.com.s3.amazonaws.com/xenial/dists/nightly/extra/binary-
 curl http://apt.mirantis.com.s3.amazonaws.com/xenial/ceph/dists/2018.3.1/luminous/binary-amd64/Packages.gz | zcat > apt.ceph-luminous.2018.3.1
 
 # upstream
-
-
+curl https://mirror.mirantis.com/nightly/ubuntu/dists/xenial/main/binary-amd64/Packages.gz | zcat > upstream-ubuntu-xenial-main
+curl https://mirror.mirantis.com/nightly/ubuntu/dists/xenial/multiverse/binary-amd64/Packages.gz | zcat > upstream-ubuntu-xenial-multiverse
+curl https://mirror.mirantis.com/nightly/ubuntu/dists/xenial/restricted/binary-amd64/Packages.gz | zcat > upstream-ubuntu-xenial-restricted
+curl https://mirror.mirantis.com/nightly/ubuntu/dists/xenial/universe/binary-amd64/Packages.gz | zcat > upstream-ubuntu-xenial-universe
 
 popd
 

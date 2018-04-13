@@ -131,7 +131,7 @@ def parse_list(list_file):
         # catch whole pkg data, whole - till next empty line..
         for p in range(l_start, l_end):
             # stop on new section
-            if l1[p] in ['\n', '\r\n']:
+            if l1[p] in ['\n', '\r\n', '']:
                 shift = p
                 break
             else:
@@ -152,7 +152,8 @@ def parse_list(list_file):
                 if l1[p].startswith('Version:'):
                     version = l1[p].split('Version:')[1].replace(
                         ' ', '').replace('\n', '')
-
+        #if not source:
+        #    LOG.warning("Pkg don't have source definition:{}".format(name))
         pkg = {'Private-Mcp-Spec-Sha': priv_spec,
                'Private-Mcp-Code-Sha': priv_code,
                'source': source or name,
@@ -165,7 +166,7 @@ def parse_list(list_file):
         if i in range(shift) and not 0:
             #      print("Skip:{}".format(i))
             continue
-        if l1[i] in ['\n', '\r\n']:
+        if l1[i] in ['\n', '\r\n', '']:
             #      print("Skip: empty")
             continue
         try:
@@ -181,19 +182,6 @@ def parse_list(list_file):
             LOG.error("Error parse packages section")
             sys.exit(1)
     return pkgs
-
-
-#          if pkgs.get(name) not in ['err', None]:
-#            # Check for value change, which mean inconsistence repo,
-#            # aka same packages with diff versions
-#            if pkgs[name]['Private-Mcp-Code-Sha'] != priv_spec:
-#              print('ERR: priv_spec ' + name)
-#              print(' Replacing {} => {}'.format(
-#                  pkgs[name]['Private-Mcp-Code-Sha'], priv_spec))
-#            if pkgs[name]['Private-Mcp-Code-Sha'] != priv_code:
-#              print('ERR: priv_code ' + name)
-#              print(' Replacing {} => {}'.format(
-#                  pkgs[name]['Private-Mcp-Code-Sha'], priv_code))
 
 def check_deb_in_git(git_list):
     """
@@ -278,6 +266,42 @@ def check_deb_in_git(git_list):
     return rez
 
 
+def parse_ubuntu_ups(pkgs):
+   #ux = parse_list("lists/upstream-ubuntu-xenial")
+   lfiles= [ "upstream-ubuntu-xenial-main", "upstream-ubuntu-xenial-multiverse",
+             "upstream-ubuntu-xenial-restricted", "upstream-ubuntu-xenial-universe"]
+   uxu = {}
+   for lfile in lfiles:
+     save_file = "/tmp/{}.yaml".format(lfile)
+     if os.path.isfile(save_file):
+         uxu = ut.dict_merge(uxu, ut.read_yaml(save_file))
+         LOG.warning("Cache used: {}".format(save_file))
+     else:
+         chunk = parse_list("lists/{}".format(lfile))
+         ut.save_yaml(chunk, save_file)
+         uxu = ut.dict_merge(uxu, chunk)
+   ipdb.set_trace()
+   not_in_ubuntu = []
+   uxu_source = pkgs_list_by_sources(uxu)
+   for k in pkgs.keys():
+     if k not in uxu_source.keys():
+       not_in_ubuntu.append(k)
+       LOG.info("Pkgs: {} not exist in ubuntu-xenial upstream".format(k))
+   ipdb.set_trace()
+   _z = set(not_in_ubuntu)
+   return _z, uxu
+
+def pkgs_list_by_sources(parsed_list):
+    """
+    return sorted by source
+    """
+    # collect all sources
+    rez = {}
+    for pkg in parsed_list.keys():
+      src = parsed_list[pkg]['source']
+      rez[src] = {"pkgs" : [k for k in parsed_list.keys() if parsed_list[k]['source'] == src ] }
+    return rez
+
 if __name__ == '__main__':
     # HOVNOSCRIPT!
     """
@@ -314,7 +338,8 @@ if __name__ == '__main__':
     pkgs_with_spec = _zz['pkgs_with_spec']
     pkgs_with_src = _zz['pkgs_with_src']
     pkgs_nice = _zz['pkgs_nice']
-
+    ipdb.set_trace()
+    pkgs_not_in_ubuntu,_ = parse_ubuntu_ups(pkgs_nice)
     ##
     if not SAVE_YAML:
         LOG.info("Not going to save anything,Ciao!")
@@ -326,6 +351,7 @@ if __name__ == '__main__':
     ut.save_yaml(pkgs_with_spec, "{}_pkgs_with_spec.yaml".format(save_mask))
     ut.save_yaml(pkgs_with_src, "{}_pkgs_with_src.yaml".format(save_mask))
     ut.save_yaml(pkgs_nice, "{}_pkgs_nice.yaml".format(save_mask))
+    ut.save_yaml(pkgs_not_in_ubuntu, "{}_pkgs_not_in_ubuntu.yaml".format(save_mask))
 
     # save all from list
     ut.save_yaml(deb_pkgs, "{}_all.yaml".format(save_mask))

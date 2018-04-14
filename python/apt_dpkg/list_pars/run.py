@@ -162,14 +162,20 @@ def parse_list(list_file):
         return pkg, shift
 
     shift = 0
-    for i in range(len(l1)):
+    i = 0
+    #LOG.debug("Len:{}".format(len(l1)))
+    while i in range(len(l1) -1 ):
+        #LOG.debug("iter={}, shift{}".format(i,shift))
         if i in range(shift) and not 0:
             #      print("Skip:{}".format(i))
+            i = shift + 1
             continue
         if l1[i] in ['\n', '\r\n', '']:
             #      print("Skip: empty")
+            i = shift + 1
             continue
         try:
+            #LOG.debug("Catch : iter={}, shift{}".format(i,shift))
             rez, shift = process_one(i, len(l1))
             if rez['name'] in pkgs.keys():
                 # TODO , catch sha's and etc for duplicates
@@ -178,6 +184,7 @@ def parse_list(list_file):
                                                rez['version']
             else:
                 pkgs[rez['name']] = rez
+            i = shift + 1
         except Exception as e:
             LOG.error("Error parse packages section")
             sys.exit(1)
@@ -280,14 +287,14 @@ def parse_ubuntu_ups(pkgs):
          chunk = parse_list("lists/{}".format(lfile))
          ut.save_yaml(chunk, save_file)
          uxu = ut.dict_merge(uxu, chunk)
-   ipdb.set_trace()
+   #ipdb.set_trace()
    not_in_ubuntu = []
    uxu_source = pkgs_list_by_sources(uxu)
    for k in pkgs.keys():
      if k not in uxu_source.keys():
        not_in_ubuntu.append(k)
        LOG.info("Pkgs: {} not exist in ubuntu-xenial upstream".format(k))
-   ipdb.set_trace()
+   #ipdb.set_trace()
    _z = set(not_in_ubuntu)
    return _z, uxu
 
@@ -338,7 +345,7 @@ if __name__ == '__main__':
     pkgs_with_spec = _zz['pkgs_with_spec']
     pkgs_with_src = _zz['pkgs_with_src']
     pkgs_nice = _zz['pkgs_nice']
-    ipdb.set_trace()
+    #ipdb.set_trace()
     pkgs_not_in_ubuntu,_ = parse_ubuntu_ups(pkgs_nice)
     ##
     if not SAVE_YAML:

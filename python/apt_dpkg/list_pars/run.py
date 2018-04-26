@@ -117,6 +117,7 @@ def get_current_one_target(_target):
 def parse_list(list_file):
     """
     Those fun parse unpacked Packages.gz text file
+    Return per package structure!
     """
     pkgs = {}
     l1 = ut.read_file(list_file)
@@ -138,18 +139,18 @@ def parse_list(list_file):
                 if l1[p].startswith('Package:'):
                     name = l1[p].split('Package:')[1].replace(
                         ' ', '').replace('\n', '')
-                if l1[p].startswith('Private-Mcp-Code-Sha:'):
+                elif l1[p].startswith('Private-Mcp-Code-Sha:'):
                     priv_code = l1[p].split(
                         'Private-Mcp-Code-Sha:')[1].replace(' ', '').replace(
                         '\n', '')
-                if l1[p].startswith('Private-Mcp-Spec-Sha:'):
+                elif l1[p].startswith('Private-Mcp-Spec-Sha:'):
                     priv_spec = l1[p].split(
                         'Private-Mcp-Spec-Sha:')[1].replace(' ', '').replace(
                         '\n', '')
-                if l1[p].startswith('Source:'):
+                elif l1[p].startswith('Source:'):
                     source = l1[p].split('Source:')[1].replace(
                         ' ', '').replace('\n', '')
-                if l1[p].startswith('Version:'):
+                elif l1[p].startswith('Version:'):
                     version = l1[p].split('Version:')[1].replace(
                         ' ', '').replace('\n', '')
         #if not source:
@@ -166,11 +167,7 @@ def parse_list(list_file):
     #LOG.debug("Len:{}".format(len(l1)))
     while i in range(len(l1) -1 ):
         #LOG.debug("iter={}, shift{}".format(i,shift))
-        if i in range(shift) and not 0:
-            #      print("Skip:{}".format(i))
-            i = shift + 1
-            continue
-        if l1[i] in ['\n', '\r\n', '']:
+        if l1[i] in ['\n', '\r\n', ''] or i in range(shift) and not 0:
             #      print("Skip: empty")
             i = shift + 1
             continue
@@ -290,6 +287,7 @@ def parse_ubuntu_ups(pkgs):
    #ipdb.set_trace()
    not_in_ubuntu = []
    uxu_source = pkgs_list_by_sources(uxu)
+   #ipdb.set_trace()
    for k in pkgs.keys():
      if k not in uxu_source.keys():
        not_in_ubuntu.append(k)
@@ -306,7 +304,11 @@ def pkgs_list_by_sources(parsed_list):
     rez = {}
     for pkg in parsed_list.keys():
       src = parsed_list[pkg]['source']
-      rez[src] = {"pkgs" : [k for k in parsed_list.keys() if parsed_list[k]['source'] == src ] }
+      rez[src] = {"pkgs" : [k for k in parsed_list.keys() if parsed_list[k]['source'] == src ],
+                  'Private-Mcp-Code-Sha': parsed_list[k]['Private-Mcp-Code-Sha'],
+                  'Private-Mcp-Spec-Sha': parsed_list[k]['Private-Mcp-Spec-Sha'],
+                  'version': parsed_list[k]['version'],
+                  'source': src }
     return rez
 
 if __name__ == '__main__':
@@ -345,8 +347,11 @@ if __name__ == '__main__':
     pkgs_with_spec = _zz['pkgs_with_spec']
     pkgs_with_src = _zz['pkgs_with_src']
     pkgs_nice = _zz['pkgs_nice']
-    #ipdb.set_trace()
-    pkgs_not_in_ubuntu,_ = parse_ubuntu_ups(pkgs_nice)
+    ipdb.set_trace()
+
+    deb_pkgs_by_source = pkgs_list_by_sources(deb_pkgs)
+
+    #pkgs_not_in_ubuntu,_ = parse_ubuntu_ups(pkgs_nice)
     ##
     if not SAVE_YAML:
         LOG.info("Not going to save anything,Ciao!")
@@ -358,10 +363,11 @@ if __name__ == '__main__':
     ut.save_yaml(pkgs_with_spec, "{}_pkgs_with_spec.yaml".format(save_mask))
     ut.save_yaml(pkgs_with_src, "{}_pkgs_with_src.yaml".format(save_mask))
     ut.save_yaml(pkgs_nice, "{}_pkgs_nice.yaml".format(save_mask))
-    ut.save_yaml(pkgs_not_in_ubuntu, "{}_pkgs_not_in_ubuntu.yaml".format(save_mask))
+    #ut.save_yaml(pkgs_not_in_ubuntu, "{}_pkgs_not_in_ubuntu.yaml".format(save_mask))
 
     # save all from list
     ut.save_yaml(deb_pkgs, "{}_all.yaml".format(save_mask))
+    ut.save_yaml(deb_pkgs_by_source, "{}_all_by_source.yaml".format(save_mask))
     # with any err
     pkgs_e = {}
     for pkg in deb_pkgs.keys():

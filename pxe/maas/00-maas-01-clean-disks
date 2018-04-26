@@ -1,0 +1,40 @@
+#!/bin/bash
+set -x
+
+dmsetup remove_all -f || true
+for _vol in $(lvdisplay -a | awk '/LV Name.*/{print $3}') ;do
+  echo "Removin lv ${$_vol}"
+  umount -f $_vol >/dev/null 2>/dev/null || true
+  lvchange -an $_vol || true
+  lvremove -f $_vol || true
+done
+
+sync
+
+
+for _vol in $(vgdisplay | awk '/VG Name.*/{print $3}') ; do
+  vgchange -an $_vol
+  vgremove -f $_vol
+done
+
+for _vol in $(ls /dev/mapper/* |grep -v control); do
+  dd if=/dev/zero of=$_vol bs=512 count=12
+done
+
+for _part in $(awk '/dm-/{print $4}' /proc/partitions); do
+  pvremove -ff $_part
+  dd if=/dev/zero of=$_part bs=512 count=255
+done
+
+for d in $(ls /dev/sd*) ; do
+  echo "Removing raid|lvm superblock ${d}"
+  mdadm --zero-superblock ${d} || true
+  pvremove -ffy ${d}* || true
+  dd if=/dev/zero of=$d bs=512 count=255
+  sync
+done
+
+dmsetup remove_all -f || true
+sync
+###
+

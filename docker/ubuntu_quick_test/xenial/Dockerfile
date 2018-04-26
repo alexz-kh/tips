@@ -3,7 +3,8 @@ FROM ubuntu:16.04
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     LANG=C.UTF-8 \
-    LANGUAGE=$LANG
+    LANGUAGE=$LANG \
+    TERM=xterm
 SHELL ["/bin/bash", "-xec"]
 # a few minor docker-specific tweaks
 # see https://github.com/docker/docker/blob/master/contrib/mkimage/debootstrap

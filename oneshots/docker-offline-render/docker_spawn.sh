@@ -1,6 +1,7 @@
 #!/bin/bash
 
-code_tag=testing
+code_tag="2018.4.0"
+#code_tag=testing
 
 srv_volumes=" -v /home/alexz/work/imgs/share/trash/dockers/volumes:/srv/volumes/aptly"
 nicev=" -v $(pwd)/_screenrc:/root/.screenrc:ro -v ${HOME}/.vimrc:/root/.vimrc:ro -v ${HOME}/.vim:/root/.vim:ro"

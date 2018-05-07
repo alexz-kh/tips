@@ -302,12 +302,15 @@ def pkgs_list_by_sources(parsed_list):
     """
     # collect all sources
     rez = {}
+    ipdb.set_trace()
     for pkg in parsed_list.keys():
+      # Should be refacted
       src = parsed_list[pkg]['source']
+      k = ""
       rez[src] = {"pkgs" : [k for k in parsed_list.keys() if parsed_list[k]['source'] == src ],
                   'Private-Mcp-Code-Sha': parsed_list[k]['Private-Mcp-Code-Sha'],
                   'Private-Mcp-Spec-Sha': parsed_list[k]['Private-Mcp-Spec-Sha'],
-                  'version': parsed_list[k]['version'],
+                  'version': parsed_list[pkg]['version'],
                   'source': src }
     return rez
 

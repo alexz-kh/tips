@@ -146,7 +146,7 @@ def save_yaml(save_yaml, to_file):
     f.write(yaml.dump(save_yaml, default_flow_style=False))
     LOG.info("{} file saved".format(to_file))
 
-def list_get (l, idx, default=None):
+def list_get(l, idx, default=None):
   try:
     return l[idx]
   except IndexError:

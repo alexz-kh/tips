@@ -1,4 +1,6 @@
-#!/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 """
 https://askubuntu.com/questions/578257/how-to-get-the-package-description-using-python-apt
@@ -6,12 +8,16 @@ https://apt.alioth.debian.org/python-apt-doc/library/index.html
 """
 import apt
 import apt_pkg
-import tempfile
-import os
+from aptsources.sourceslist import SourcesList
+import tempfile,os,sys
+import six
+import copy
 from pprint import pprint, pformat
 import logging as LOG
 
-#import lib as ut
+import lib as ut
+import old_run as old
+
 try:
     import ipdb
 except ImportError:
@@ -23,8 +29,43 @@ LOG.basicConfig(level=LOG.DEBUG, datefmt='%Y-%m-%d %H:%M:%S',
                        '%(message)s', )
 
 
-from aptsources.sourceslist import SourcesList
+cfgFile = os.environ.get("CONFIG_FILE", "config_infra.yaml")
+SAVE_YAML = ut.str2bool(os.environ.get("SAVE_YAML", True))
+GERRIT_CACHE = ut.str2bool((os.environ.get("GERRIT_CACHE", False)))
 
+#########
+repos= {
+    'apt_xenial_testing_salt' : {
+        "type" : 'deb',
+        "uri" : 'http://apt.mirantis.com/xenial',
+        "dist" : 'testing',
+        "orig_comps" : ['salt',],
+        "comment" : 'qwe',
+    },
+    'apt_os_pike_testing_main' : {
+        "type" : 'deb',
+        "uri"  : 'http://apt.mirantis.com/xenial/openstack/pike/',
+        "dist"  : 'testing',
+        "orig_comps" : ['main',],
+        "comment" : 'os.pike.testing'
+    },
+    'uca_queens_xenial_upd_main' : {
+        "type" : 'deb',
+        "uri"  : 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+        "dist"  : 'xenial-updates/queens',
+        "orig_comps" : ['main',],
+        "comment" : 'uca_queens_main'
+    },
+    'uca_queens_xenial_main' : {
+        "type" : 'deb',
+        "uri"  : 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+        "dist"  : 'xenial-updates/queens',
+        "orig_comps" : ['main',],
+        "comment" : 'uca_queens_main'
+    }
+
+}
+#########
 
 APT_DIRS = [
     "etc/apt/sources.list.d",
@@ -73,9 +114,10 @@ def setup_apt(rootdir):
 
     return apt_conf_path
 
-def process_pkgs(cache):
+def get_pkgs(cache,return_all_v=False):
     """
-    cache should contain only one source - unless 'dupicates' check usless
+    cache should contain only one source - unless 'dupicates' check usless.
+    Return: always 'candidate' version will be.
     """
     pkgs = {}
     duplicates = {}
@@ -85,47 +127,97 @@ def process_pkgs(cache):
             for v in pkg.versions.keys():
                 duplicates[pkg.name][v] = pkg.versions[v].origins
             LOG.error("miltiply versions detected:\n{}".format(pformat(duplicates)))
-        all_v = {}
-        for v in pkg.versions.keys():
-            all_v[v] = { 'source_name' : pkg.versions[v].source_name,
-                         'source_version' : pkg.versions[v].source_version,
-                         'Private-Mcp-Spec-Sha': pkg.versions[v].record.get('Private-Mcp-Spec-Sha',None),
-                         'Private-Mcp-Code-Sha': pkg.versions[v].record.get('Private-Mcp-Code-Sha',None)}
-        pkgs[pkg.name] = { 'versions' : all_v }
+        if return_all_v:
+          all_v = {}
+          for v in pkg.versions.keys():
+              all_v[v] = { 'source_name' : pkg.versions[v].source_name,
+                           'archive' : pkg.versions[v].origins[0].archive,
+                           'Private-Mcp-Spec-Sha': pkg.versions[v].record.get('Private-Mcp-Spec-Sha',None),
+                           'Private-Mcp-Code-Sha': pkg.versions[v].record.get('Private-Mcp-Code-Sha',None)}
+          pkgs[pkg.name] = { 'versions' : all_v }
+        # Candidate, might not always be 'latest' - its depends on apt priorit.
+        latest_v = pkg.candidate
+        pkgs[pkg.name] = { 'source_name' : latest_v.source_name,
+                           'archive' : latest_v.origins[0].archive,
+                           'version' : latest_v.version,
+                           'Private-Mcp-Spec-Sha': latest_v.record.get('Private-Mcp-Spec-Sha',None),
+                           'Private-Mcp-Code-Sha': latest_v.record.get('Private-Mcp-Code-Sha',None)
+                          }
     return pkgs,duplicates
+
+
+def sort_by_source(pkgs):
+    """
+    Always guessing from one version, so work only over 'version' key
+    """
+    _pkgs = copy.deepcopy(pkgs)
+    rez = {}
+    k = ""
+    for pkg in _pkgs.keys():
+      # Always for 1st version
+      src = _pkgs[pkg]['source_name']
+      k = ""
+      rez[src] = {"pkgs" : [k for k in _pkgs.keys() if _pkgs[k]['source_name'] == src ],
+                  'archive' : _pkgs[pkg]['archive'],
+                  'version' : _pkgs[pkg]['version'],
+                  'Private-Mcp-Spec-Sha': _pkgs[pkg]['Private-Mcp-Spec-Sha'],
+                  'Private-Mcp-Code-Sha': _pkgs[pkg]['Private-Mcp-Code-Sha'],
+                  'source_name': src }
+    return rez
 
 
 if __name__ == '__main__':
     rootdir = tempfile.mkdtemp()
     print(rootdir)
+    ####
     apt_conf_path = setup_apt(rootdir=rootdir)
-
     sources_list = SourcesList()
-    sources_list.add(
-        type='deb',
-        uri='http://apt.mirantis.com/xenial',
-        dist='testing',
-        orig_comps=['salt',],
-        comment='qwe',
-    )
-    sources_list.add(
-        type='deb',
-        uri='http://apt.mirantis.com/xenial/openstack/pike/',
-        dist='testing',
-        orig_comps=['main',],
-        comment='os.pike.testing',
-    )
+#    sources_list.add(**repos['apt_os_pike_testing_main'])
+#    sources_list.add(**repos['apt_xenial_testing_salt'])
+    sources_list.add(**repos['uca_queens_xenial_upd_main'])
+    sources_list.add(**repos['uca_queens_xenial_main'])
     sources_list.save()
-
     cache = apt.Cache(rootdir=rootdir)
     cache.update()
     cache.open()
 
+    pkgs_os_pike_testing, duplicates = get_pkgs(cache)
+
+    s_source = sort_by_source(pkgs_os_pike_testing)
+    zz = {}
+    for i in s_source.keys(): zz[i] = { 'pkgs' : s_source[i]['pkgs'], 'version': s_source[i]['version']}
     ipdb.set_trace()
-    all_pkgs = process_pkgs(cache)
+    ###############
+
+    # HOVNOSCRIPT!
+    """
+    GERRIT_CACHE=True
+    SAVE_YAML=True
+    CONFIG_FILE=config_infra.yaml
+    ./run.py "apt_os_pike_testing_main"
+    """
+    cfg = ut.read_yaml(cfgFile)
+    reponame = ut.list_get(sys.argv, 1, 'apt_os_pike_testing_main')
+
+    save_mask = os.path.join(
+        "rez_" + reponame.replace('/', '_') + "_" + cfgFile.replace('.yaml',
+                                                                     ""),
+        "rez_" + reponame.replace('/', '_'))
+
+    _git_listfile = "{}_git_list.yaml".format(save_mask)
+
+    if GERRIT_CACHE and os.path.isfile(_git_listfile):
+        current_git_list = ut.read_yaml(_git_listfile)
+        LOG.warning("Cache used :{}".format(_git_listfile))
+    else:
+        current_git_list = old.get_current_list(cfg)
+        ut.save_yaml(current_git_list, _git_listfile)
 
     ipdb.set_trace()
     LOG.info("ZZ")
-
+    if SAVE_YAML:
+      ut.save_yaml(pkgs_os_pike_testing, "{}_pkgs_all.yaml".format(save_mask))
+      ut.save_yaml(s_source, "{}_pkgs_by_source.yaml".format(save_mask))
+      ut.save_yaml(duplicates, "{}_pkgs_duplicates.yaml".format(save_mask))
 
 

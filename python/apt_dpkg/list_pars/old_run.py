@@ -26,25 +26,19 @@ except ImportError:
     print("no ipdb")
 
 
-def run_c(command):
-    child = subprocess.Popen(command, stderr=subprocess.PIPE,
-                             stdout=subprocess.PIPE, shell=True)
-    child.wait()
-    out, err = child.communicate()
-    if DEBUG:
-        print '###Command: \n%s\n%s' % (command, out)
-    if err:
-        print 'ERR:\n%s' % err
-    return out, err
-
-
-def get_current_list(_targets):
+def get_current_list(cfg):
     """
     Took all from gerrit-ls
     and parse with target rules
     Return all project for all targets
 
     """
+    NewGitrepoYamlMask = os.path.join(cfg.get('drop', 'w1'),
+                                      cfg.get('new_gitrepoCfgFileMask',
+                                              'gitrepoCfgFile'))
+    OldGitrepoCfgFile = cfg.get(
+        "old_gitrepoCfgFileMask", "old_gitrepoCfgFileMask")
+
     current_proj_list = {}
     for t in cfg['targets']:
         new_gitrepo_cfg = []
@@ -55,11 +49,11 @@ def get_current_list(_targets):
                                           "report_" + os.path.basename(
                                               dump_to_file))
         oldGitrepoCfgFile = OldGitrepoCfgFile + '_' + t + '.yaml'
-        current_proj_list[t] = get_current_one_target(cfg['targets'][t])
+        current_proj_list[t] = get_current_one_target(cfg['targets'][t],cfg=cfg)
     return current_proj_list
 
 
-def get_current_one_target(_target):
+def get_current_one_target(_target,cfg=None):
     g_target = copy.deepcopy(_target)
     g_prefixes = g_target.get('prefixes', [])
     target_branches = g_target.get('branches_all', [])
@@ -329,11 +323,6 @@ if __name__ == '__main__':
     # will be masked like:
     # dump_to_file = NewGitrepoYamlMask + gen_cfgFile['targets'].keys() + '.yaml'
     # new_gitrepoCfgFile_packages.yaml
-    NewGitrepoYamlMask = os.path.join(cfg.get('drop', 'w1'),
-                                      cfg.get('new_gitrepoCfgFileMask',
-                                              'gitrepoCfgFile'))
-    OldGitrepoCfgFile = cfg.get(
-        "old_gitrepoCfgFileMask", "old_gitrepoCfgFileMask")
 
     _git_listfile = "{}_git_list.yaml".format(save_mask)
     if GERRIT_CACHE and os.path.isfile(_git_listfile):

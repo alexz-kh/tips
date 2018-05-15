@@ -64,7 +64,6 @@ if __name__ == '__main__':
     cache.open()
     #dcache = apt_pkg.DepCache(apt_pkg.Cache())
 
-
     installed=all_installed()
     filtered_pkgs,all_pkgs=zz2()
 
@@ -72,5 +71,7 @@ if __name__ == '__main__':
     print("Sorted count: {}".format(len(filtered_pkgs.keys())))
     print("Sorted list:\n")
     ppr.pprint(filtered_pkgs)
+
+
 
     sys.exit(0)

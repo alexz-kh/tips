@@ -5,10 +5,7 @@ import subprocess, six, shlex
 import logging as LOG
 import yaml
 
-LOG.basicConfig(level=LOG.DEBUG, datefmt='%Y-%m-%d %H:%M:%S',
-                format='%(asctime)-15s - [%(levelname)s] %(module)s:%(lineno)d: '
-                       '%(message)s', )
-
+LOG.getLogger()
 
 # copy-paste from openstack/fuel-agent project
 
@@ -117,12 +114,13 @@ def execute(*cmd, **kwargs):
 # end of copy-paste
 
 def read_file(text_file):
-  if not os.path.isfile(text_file):
-    LOG.error("File not exist:{}".format(text_file))
-    sys.exit(1)
-  with open(text_file, 'r') as f:
-    x = f.read().split('\n')
-  return x
+    if not os.path.isfile(text_file):
+        LOG.error("File not exist:{}".format(text_file))
+        sys.exit(1)
+    with open(text_file, 'r') as f:
+        x = f.read().split('\n')
+    return x
+
 
 def read_yaml(y_file):
     data = {}
@@ -135,28 +133,32 @@ def read_yaml(y_file):
                   .format(y_file))
     sys.exit(1)
 
+
 def save_yaml(save_yaml, to_file):
-  if not os.path.exists(os.path.dirname(to_file)):
-    try:
-      os.makedirs(os.path.dirname(to_file))
-    except OSError as exc:
-      LOG.error("Unable create:{}".format(to_file))
-      sys.exit(1)
-  with open(to_file, 'w') as f:
-    f.write(yaml.dump(save_yaml, default_flow_style=False))
-    LOG.info("{} file saved".format(to_file))
+    if not os.path.exists(os.path.dirname(to_file)):
+        try:
+            os.makedirs(os.path.dirname(to_file))
+        except OSError as exc:
+            LOG.error("Unable create:{}".format(to_file))
+            sys.exit(1)
+    with open(to_file, 'w') as f:
+        f.write(yaml.dump(save_yaml, default_flow_style=False))
+        LOG.info("{} file saved".format(to_file))
+
 
 def list_get(l, idx, default=None):
-  try:
-    return l[idx]
-  except IndexError:
-    LOG.error("No such index:{}\nReturning default:{}".format(idx,default))
-    return default
+    try:
+        return l[idx]
+    except IndexError:
+        LOG.error("No such index:{}\nReturning default:{}".format(idx, default))
+        return default
+
 
 def str2bool(v):
-  if type(v) == bool:
-    return v
-  return v.lower() in ("yes", "true", "y", "1")
+    if type(v) == bool:
+        return v
+    return v.lower() in ("yes", "true", "y", "1")
+
 
 def dict_merge(a, b):
     """ Recursively merges dict's.
@@ -168,9 +170,55 @@ def dict_merge(a, b):
     if not isinstance(b, dict):
         return copy.deepcopy(b)
     result = copy.deepcopy(a)
-    for k, v in b.iteritems():
+    for k, v in b.items():
+        if k in result and isinstance(result[k], dict):
+            result[k] = dict_merge(result[k], v)
         if k in result and isinstance(result[k], dict):
             result[k] = dict_merge(result[k], v)
         else:
             result[k] = copy.deepcopy(v)
     return result
+
+
+def retry(ExceptionToCheck, tries=4, delay=10, backoff=1.5):
+    """Retry calling the decorated function using an exponential backoff.
+
+    http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
+    original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+
+    :param ExceptionToCheck: the exception to check. may be a tuple of
+        exceptions to check
+    :type ExceptionToCheck: Exception or tuple
+    :param tries: number of times to try (not retry) before giving up
+    :type tries: int
+    :param delay: initial delay between retries in seconds
+    :type delay: int
+    :param backoff: backoff multiplier e.g. value of 2 will double the delay
+        each retry
+    :type backoff: int
+    :param logger: logger to use. If None, print
+    :type logger: logging.Logger instance
+    """
+    import time
+    from functools import wraps
+
+    def deco_retry(f):
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except ExceptionToCheck as e:
+                    msg = "%s, Retrying in %d seconds..." % (str(e), mdelay)
+                    # if 'Insufficient' in msg:
+                    #     import ipdb;ipdb.set_trace()
+                    LOG.warning(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+
+        return f_retry  # true decorator
+
+    return deco_retry

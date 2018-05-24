@@ -42,12 +42,26 @@ repos= {
         "orig_comps" : ['salt',],
         "comment" : 'qwe',
     },
+    'apt_os_pike_nightly_main' : {
+        "type" : 'deb',
+        "uri"  : 'http://apt.mirantis.com/xenial/openstack/pike/',
+        "dist"  : 'nightly',
+        "orig_comps" : ['main',],
+        "comment" : 'os.pike.nightly'
+    },
     'apt_os_pike_testing_main' : {
         "type" : 'deb',
         "uri"  : 'http://apt.mirantis.com/xenial/openstack/pike/',
         "dist"  : 'testing',
         "orig_comps" : ['main',],
         "comment" : 'os.pike.testing'
+    },
+    'apt_os_pike_proposed_main' : {
+        "type" : 'deb',
+        "uri"  : 'http://apt.mirantis.com/xenial/openstack/pike/',
+        "dist"  : 'proposed',
+        "orig_comps" : ['main',],
+        "comment" : 'os.pike.proposed'
     },
     'uca_queens_xenial_upd_main' : {
         "type" : 'deb',
@@ -164,6 +178,35 @@ def sort_by_source(pkgs):
                   'Private-Mcp-Code-Sha': _pkgs[pkg]['Private-Mcp-Code-Sha'],
                   'source_name': src }
     return rez
+
+def get_one_list(listnames,private=True):
+    import shutil
+
+    rootdir = tempfile.mkdtemp()
+    apt_conf_path = setup_apt(rootdir=rootdir)
+    sources_list = SourcesList()
+    for l_name in listnames:
+        sources_list.add(**repos[l_name])
+    sources_list.save()
+    cache = apt.Cache(rootdir=rootdir)
+    cache.update()
+    cache.open()
+    pkgs, duplicates = get_pkgs(cache)
+    s_source = sort_by_source(pkgs)
+    try:
+        shutil.rmtree(rootdir)
+        LOG.debug("Directory removed: {}".format(rootdir))
+    except(OSError, e):
+        LOG.warning("Error: %s - %s." % (e.filename,e.strerror))
+        pass
+    cache.close()
+    if not private:
+        for i in s_source.keys():
+            s_source[i].pop('Private-Mcp-Spec-Sha',None)
+            s_source[i].pop('Private-Mcp-Code-Sha',None)
+    return s_source
+
+
 
 
 if __name__ == '__main__':

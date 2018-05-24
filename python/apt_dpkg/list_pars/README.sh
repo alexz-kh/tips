@@ -2,9 +2,9 @@
 
 set -ex
 if [[ ! -d venv ]];then
-  virtualenv   --system-site-packages --always-copy venv
+  virtualenv --python=python3 --system-site-packages --always-copy venv
   source venv/bin/activate
-  pip install -U PyYaml gspread oauth2client PyOpenSSL
+  pip install -U PyYaml gspread oauth2client PyOpenSSL pytz
 #  pip install -U https://github.com/nithinmurali/pygsheets/archive/staging.zip
 #  pip install --upgrade pyasn1-modules
 

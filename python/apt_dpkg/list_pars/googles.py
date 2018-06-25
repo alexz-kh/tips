@@ -12,7 +12,7 @@ import pygsheets
 
 USE_DPKG_CACHE = os.environ.get("USE_DPKG_CACHE", "/tmp/archive_pkgs_by_source.yaml")
 API_KEY  = os.environ.get("API_KEY", "/home/alexz/.ssh/gsheet.py.txt")
-GS_ID    = os.environ.get("GS_ID",'XXX')
+GS_ID    = os.environ.get("GS_ID",'1x88N2nTVsvo82GBeRGVJnUnz_JIjDHQ5uPjybjHZbe4')
 
 
 # https://habr.com/post/305378/

@@ -76,6 +76,13 @@ repos= {
         "dist"  : 'xenial-updates/queens',
         "orig_comps" : ['main',],
         "comment" : 'uca_queens_main'
+    },
+    'apt_xenial_nightly_extra' : {
+        "type" : 'deb',
+        "uri"  : 'http://apt.mirantis.com/xenial/',
+        "dist"  : 'nightly',
+        "orig_comps" : ['extra',],
+        "comment" : 'extra_main'
     }
 
 }
@@ -180,6 +187,9 @@ def sort_by_source(pkgs):
     return rez
 
 def get_one_list(listnames,private=True):
+    '''
+    listnames=['zz1']
+    '''
     import shutil
 
     rootdir = tempfile.mkdtemp()
@@ -206,19 +216,26 @@ def get_one_list(listnames,private=True):
             s_source[i].pop('Private-Mcp-Code-Sha',None)
     return s_source
 
-
-
-
 if __name__ == '__main__':
     rootdir = tempfile.mkdtemp()
     print(rootdir)
+    ipdb.set_trace()
+    extra = get_one_list(['apt_xenial_nightly_extra'])
+    os_pike = get_one_list(['apt_os_pike_proposed_main'])
+    notin = []
+    for k in extra.keys():
+        if k not in os_pike.keys():
+            notin.append(k)
+    ipdb.set_trace()
     ####
     apt_conf_path = setup_apt(rootdir=rootdir)
     sources_list = SourcesList()
 #    sources_list.add(**repos['apt_os_pike_testing_main'])
 #    sources_list.add(**repos['apt_xenial_testing_salt'])
-    sources_list.add(**repos['uca_queens_xenial_upd_main'])
-    sources_list.add(**repos['uca_queens_xenial_main'])
+#    sources_list.add(**repos['uca_queens_xenial_upd_main'])
+#    sources_list.add(**repos['uca_queens_xenial_main'])
+    sources_list.add(**repos['apt_xenial_nightly_extra'])
+    sources_list.add(**repos['apt_os_pike_proposed_main'])
     sources_list.save()
     cache = apt.Cache(rootdir=rootdir)
     cache.update()

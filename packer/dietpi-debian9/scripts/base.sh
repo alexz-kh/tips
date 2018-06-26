@@ -35,8 +35,7 @@ sudo chown -R dietpi:dietpi /home/dietpi/.ssh
 sudo /bin/bash -c 'echo -e "r00tme\nr00tme"|passwd dietpi'
 
 ###
-dd if=/dev/zero of=/EMPTY bs=1M || true
-rm -f /EMPTY
-echo 3 > /proc/sys/vm/drop_caches
-sync
-
+sudo /bin/bash -c 'dd if=/dev/zero of=/EMPTY bs=1M || true'
+sudo rm -f /EMPTY
+sudo /bin/bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+sudo sync

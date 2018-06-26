@@ -26,9 +26,17 @@ export GIT_BRANCH=$GIT_BRANCH
 #./PREP_SYSTEM_FOR_DIETPI.sh
 
 sleep 99h || true
+###
 sudo mkdir -p /home/dietpi/.ssh/
 sudo wget https://github.com/alexz-kh.keys -O /home/dietpi/.ssh/authorized_keys
-chmod 0600 /home/dietpi/.ssh/authorized_keys
-chmod 700 /home/dietpi/.ssh
-chown -R dietpi:dietpi /home/dietpi/.ssh
+sudo chmod 0600 /home/dietpi/.ssh/authorized_keys
+sudo chmod 700 /home/dietpi/.ssh
+sudo chown -R dietpi:dietpi /home/dietpi/.ssh
+sudo /bin/bash -c 'echo -e "r00tme\nr00tme"|passwd dietpi'
+
+###
+dd if=/dev/zero of=/EMPTY bs=1M || true
+rm -f /EMPTY
+echo 3 > /proc/sys/vm/drop_caches
+sync
 

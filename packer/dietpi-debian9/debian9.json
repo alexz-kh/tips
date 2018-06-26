@@ -2,7 +2,7 @@
   "variables": {
     "user": "pi",
     "password": "pi",
-    "disk_size": "8000",
+    "disk_size": "2000",
     "image_name": "diet-debian9",
     "bs_hostname": "diet",
     "iso_cache" : "/home/alexz/work/imgs/isos/"

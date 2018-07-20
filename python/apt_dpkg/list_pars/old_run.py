@@ -261,7 +261,7 @@ def check_deb_in_git(git_list):
             _pkgs_nice[p]['source'] = {
                 'path': _src_path,
                 'Private-Mcp-Code-Sha': _n_src[p]['Private-Mcp-Code-Sha'],
-                'branches': _branches }
+                'branches': _branches}
 
     rez = {'pkgs_no_src': sorted(_pkgs_no_src),
            'pkgs_no_spec': sorted(_pkgs_no_spec),
@@ -324,7 +324,9 @@ def check_deb_in_git_v2(git_list, debs, cfg):
                 'specs': {
                     'path': _specs_path,
                     'Private-Mcp-Spec-Sha': _n_src[p]['Private-Mcp-Spec-Sha'],
-                    'branches': git_list['specs'][os.path.join(_git_spec_prefix,p)]['branches'].keys()}}
+                    'branches': list(
+                        git_list['specs'][os.path.join(_git_spec_prefix, p)][
+                            'branches'].keys())}}
         # Check that related deb pkg 'source:' in git sources
         if p in _black_src and p in _openstack:
             LOG.info("Blacklisted from sources:{}".format(p))
@@ -345,9 +347,11 @@ def check_deb_in_git_v2(git_list, debs, cfg):
             if len(_src_path) > 1:
                 LOG.warning("Fix duplicate SOURCE PATH manually:{}".format(_src_path))
             _pkgs_nice[p]['source'] = {
-                    'path': _src_path,
-                    'Private-Mcp-Code-Sha': _n_src[p]['Private-Mcp-Code-Sha'],
-                    'branches': git_list['openstack'][os.path.join(_git_src_prefix,p)]['branches'].keys()}
+                'path': _src_path,
+                'Private-Mcp-Code-Sha': _n_src[p]['Private-Mcp-Code-Sha'],
+                'branches': list(
+                    git_list['openstack'][os.path.join(_git_src_prefix, p)][
+                        'branches'].keys())}
 
     rez = {'pkgs_no_src': sorted(_pkgs_no_src),
            'pkgs_no_spec': sorted(_pkgs_no_spec),

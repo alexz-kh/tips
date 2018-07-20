@@ -319,19 +319,20 @@ def dump_aptly_openstack_junkie(release, os_release='pike', to_dir=None):
     if not to_dir:
         return
     for k in parsed.keys():
-        if k == 'pkgs_nice':
-            ipdb.set_trace()
         ut.save_yaml(parsed[k],
                      "{}/apt_"
                      "mirantis_os_{}_{}_chunk_{}.yaml".format(to_dir,
                                                               os_release,
                                                               release, k))
-    ipdb.set_trace()
     merged = ut.dict_merge(os_pkgs, parsed['pkgs_nice'])
     ut.save_yaml(merged,
                  "{}/apt_mirantis_os_{}_{}_merged.yaml".format(to_dir,
                                                                os_release,
                                                                release))
+    ut.save_yaml(os_pkgs,
+                 "{}/apt_mirantis_os_{}_{}_clean.yaml".format(to_dir,
+                                                              os_release,
+                                                              release))
 
 
 def dump_aptly_salt(release, to_dir=False):
@@ -353,6 +354,7 @@ if __name__ == '__main__':
     ipdb.set_trace()
     dump_aptly_openstack_junkie('2018.7.0-milestone1', to_dir=save_dir)
     #dump_aptly_salt('2018.7.0-milestone1', to_dir=save_dir)
+    sys.exit(0)
 
     ipdb.set_trace()
     ####

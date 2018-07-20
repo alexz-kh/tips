@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import subprocess
 import sys
@@ -86,10 +86,10 @@ def get_current_one_target(_target,cfg=None):
                     to_filename=t_path)
                 result = ut.read_yaml(t_path)
                 # Drop unneded info from gerrit
-                for k, v in result.iteritems():
+                for k in result.keys():
                     if k in clean_result:
                         LOG.eror("Duplicate detected:{}".format(k))
-                    clean_result[k] = {'branches': v['branches']}
+                    clean_result[k] = {'branches': result[k]['branches']}
                 return clean_result
         finally:
             os.remove(t_path)
@@ -181,6 +181,7 @@ def parse_list(list_file):
             sys.exit(1)
     return pkgs
 
+
 def check_deb_in_git(git_list):
     """
     Check that deb exist in git's. KISS
@@ -200,6 +201,98 @@ def check_deb_in_git(git_list):
         _n_src[deb_pkgs[p]['source']] = {
             'Private-Mcp-Code-Sha': deb_pkgs[p]['Private-Mcp-Code-Sha'],
             'Private-Mcp-Spec-Sha': deb_pkgs[p]['Private-Mcp-Spec-Sha']
+        }
+    _pkgs_no_spec = []
+    _pkgs_no_src = []
+    _pkgs_with_spec = []
+    _pkgs_with_src = []
+    _pkgs_nice = {}
+    # FIXME hardcoode
+    _black_spec = cfg['targets']['specs'].get('project_blacklist', [])
+    _black_src = cfg['targets']['openstack'].get('project_blacklist', [])
+    _git_src_prefix = cfg['targets']['openstack'].get('prefixes', [])[0]
+    _git_spec_prefix = cfg['targets']['specs'].get('prefixes', [])[0]
+    if len(cfg['targets']['openstack'].get('prefixes', [])) > 1 or len(cfg['targets']['specs'].get('prefixes', [])) > 1:
+        LOG.error("I cant work with multiply prefixes ;(")
+        sys.exit(1)
+    for p in _n_src.keys():
+        # Check that related deb pkg 'source:' in git specs
+        if p in _black_spec and p in _specs:
+            LOG.info("Blacklisted from specs:{}".format(p))
+        elif p not in _specs:
+            LOG.error("Not in specs:{}".format(p))
+            _pkgs_no_spec.append(p)
+        else:
+            _pkgs_with_spec.append(p)
+            # God bless that source: == last part of string!
+            _specs_path = [k for k in git_list['specs'] if k.endswith(p)]
+            _branches = list(
+                git_list['specs'][os.path.join(_git_spec_prefix, p)][
+                    'branches'].keys())
+            if len(_specs_path) > 1:
+                LOG.warning("Fix duplicate SPECS PATH manually:{}".format(_specs_path))
+            _pkgs_nice[p] = {
+                'specs': {
+                    'path': _specs_path,
+                    'Private-Mcp-Spec-Sha': _n_src[p]['Private-Mcp-Spec-Sha'],
+                    'branches': _branches}}
+        # Check that related deb pkg 'source:' in git sources
+        if p in _black_src and p in _openstack:
+            LOG.info("Blacklisted from sources:{}".format(p))
+        if p not in _openstack:
+            LOG.warning("Not in soures:{}".format(p))
+            _pkgs_no_src.append(p)
+        else:
+            # God bless that source: == last part of string!
+            _pkgs_with_src.append(p)
+            # If pkgs missed from specs - it would fail to add source key
+            if not _pkgs_nice.get(p, False):
+                _pkgs_nice[p] = {}
+            # FIXME check for overwrite!
+            _pkgs_nice[p]['source'] = [k for k in git_list['openstack'] if
+                                       k.endswith(p)]
+            # Check for not work k.endswith magic
+            _src_path = [k for k in git_list['openstack'] if k.endswith(p)]
+            _branches = list(
+                git_list['openstack'][os.path.join(_git_src_prefix, p)][
+                    'branches'].keys())
+            if len(_src_path) > 1:
+                LOG.warning("Fix duplicate SOURCE PATH manually:{}".format(_src_path))
+            _pkgs_nice[p]['source'] = {
+                'path': _src_path,
+                'Private-Mcp-Code-Sha': _n_src[p]['Private-Mcp-Code-Sha'],
+                'branches': _branches }
+
+    rez = {'pkgs_no_src': sorted(_pkgs_no_src),
+           'pkgs_no_spec': sorted(_pkgs_no_spec),
+           'pkgs_with_spec': sorted(_pkgs_with_spec),
+           'pkgs_with_src': sorted(_pkgs_with_src),
+           'pkgs_nice': _pkgs_nice}
+    return rez
+
+
+def check_deb_in_git_v2(git_list, debs, cfg):
+    """
+    Check that deb exist in git's. KISS
+    Whole structure hardcoded for `openstack` and `specs`
+    debs = {
+    }
+    """
+
+    _specs = []
+    for k in git_list['specs'].keys(): _specs.append(k.split('/')[-1])
+    _openstack = []
+    for k in git_list['openstack'].keys(): _openstack.append(k.split('/')[-1])
+    # _src = []
+    # for p in deb_pkgs.keys(): _src.append((deb_pkgs[p]['source']))
+    # _uniq_src = set(_src)
+    #
+    _n_src = {}
+    # uniq list by deb source
+    for p in debs.keys():
+        _n_src[debs[p]['source_name']] = {
+            'Private-Mcp-Code-Sha': debs[p]['Private-Mcp-Code-Sha'],
+            'Private-Mcp-Spec-Sha': debs[p]['Private-Mcp-Spec-Sha']
         }
     _pkgs_no_spec = []
     _pkgs_no_src = []
@@ -265,30 +358,32 @@ def check_deb_in_git(git_list):
 
 
 def parse_ubuntu_ups(pkgs):
-   #ux = parse_list("lists/upstream-ubuntu-xenial")
-   lfiles= [ "upstream-ubuntu-xenial-main", "upstream-ubuntu-xenial-multiverse",
-             "upstream-ubuntu-xenial-restricted", "upstream-ubuntu-xenial-universe"]
-   uxu = {}
-   for lfile in lfiles:
-     save_file = "/tmp/{}.yaml".format(lfile)
-     if os.path.isfile(save_file):
-         uxu = ut.dict_merge(uxu, ut.read_yaml(save_file))
-         LOG.warning("Cache used: {}".format(save_file))
-     else:
-         chunk = parse_list("lists/{}".format(lfile))
-         ut.save_yaml(chunk, save_file)
-         uxu = ut.dict_merge(uxu, chunk)
-   #ipdb.set_trace()
-   not_in_ubuntu = []
-   uxu_source = pkgs_list_by_sources(uxu)
-   #ipdb.set_trace()
-   for k in pkgs.keys():
-     if k not in uxu_source.keys():
-       not_in_ubuntu.append(k)
-       LOG.info("Pkgs: {} not exist in ubuntu-xenial upstream".format(k))
-   #ipdb.set_trace()
-   _z = set(not_in_ubuntu)
-   return _z, uxu
+    # ux = parse_list("lists/upstream-ubuntu-xenial")
+    lfiles = ["upstream-ubuntu-xenial-main",
+              "upstream-ubuntu-xenial-multiverse",
+              "upstream-ubuntu-xenial-restricted",
+              "upstream-ubuntu-xenial-universe"]
+    uxu = {}
+    for lfile in lfiles:
+        save_file = "/tmp/{}.yaml".format(lfile)
+        if os.path.isfile(save_file):
+            uxu = ut.dict_merge(uxu, ut.read_yaml(save_file))
+            LOG.warning("Cache used: {}".format(save_file))
+        else:
+            chunk = parse_list("lists/{}".format(lfile))
+            ut.save_yaml(chunk, save_file)
+            uxu = ut.dict_merge(uxu, chunk)
+    # ipdb.set_trace()
+    not_in_ubuntu = []
+    uxu_source = pkgs_list_by_sources(uxu)
+    # ipdb.set_trace()
+    for k in pkgs.keys():
+        if k not in uxu_source.keys():
+            not_in_ubuntu.append(k)
+            LOG.info("Pkgs: {} not exist in ubuntu-xenial upstream".format(k))
+    # ipdb.set_trace()
+    _z = set(not_in_ubuntu)
+    return _z, uxu
 
 def pkgs_list_by_sources(parsed_list):
     """
@@ -296,8 +391,8 @@ def pkgs_list_by_sources(parsed_list):
     """
     # collect all sources
     rez = {}
-    ipdb.set_trace()
     for pkg in parsed_list.keys():
+      ipdb.set_trace()
       # Should be refacted
       src = parsed_list[pkg]['source']
       k = ""
@@ -312,9 +407,10 @@ if __name__ == '__main__':
     # HOVNOSCRIPT!
     """
     SAVE_YAML=True CONFIG_FILE=config_infra.yaml ./run.py "lists/apt.os.pike.proposed"
+    SAVE_YAML=True CONFIG_FILE=config_infra.yaml ./old_run.py "lists/apt.os.pike.2018.7.0-milestone1"
     """
     cfg = ut.read_yaml(cfgFile)
-    list_file = ut.list_get(sys.argv, 1, 'os.pike.nightly')
+    list_file = ut.list_get(sys.argv, 1, 'os.pike.2018.7.0-milestone1')
     save_mask = os.path.join(
         "rez_" + list_file.replace('/', '_') + "_" + cfgFile.replace('.yaml',
                                                                      ""),
@@ -329,7 +425,8 @@ if __name__ == '__main__':
         current_git_list = ut.read_yaml(_git_listfile)
         LOG.warning("Cache used :{}".format(_git_listfile))
     else:
-        current_git_list = get_current_list(cfg['targets'])
+        ipdb.set_trace()
+        current_git_list = get_current_list(cfg)
         ut.save_yaml(current_git_list, _git_listfile)
     #
     deb_pkgs = parse_list(list_file)

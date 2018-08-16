@@ -172,7 +172,7 @@ def get_pkgs(_cache, return_all_v=False):
             for v in pkg.versions.keys():
                 dupl[pkg.name][v] = pkg.versions[v].origins
             LOG.error("multiply versions"
-                      "detected:\n{}".format(pformat(dupl)))
+                      "detected:{}\n{}".format(pkg.name,pformat(pkg.versions)))
         if return_all_v:
             all_v = {}
             for v in pkg.versions.keys():
@@ -349,11 +349,11 @@ def dump_aptly_salt(release, to_dir=False):
 if __name__ == '__main__':
     rootdir = tempfile.mkdtemp()
     #save_dir = 'rez_' + str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
-    save_dir = 'rez_1'
+    save_dir = 'rez_2'
 
     ipdb.set_trace()
-    dump_aptly_openstack_junkie('2018.7.0-milestone1', to_dir=save_dir)
-    #dump_aptly_salt('2018.7.0-milestone1', to_dir=save_dir)
+    dump_aptly_openstack_junkie('2018.8.0', to_dir=save_dir)
+    dump_aptly_salt('2018.8.0', to_dir=save_dir)
     sys.exit(0)
 
     ipdb.set_trace()

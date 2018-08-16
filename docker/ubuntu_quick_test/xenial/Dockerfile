@@ -45,7 +45,7 @@ RUN cd /etc/apt/ && echo > sources.list \
   && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
   && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
   && apt-get update && apt-get  upgrade -y \
-  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping \
+  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils \
   && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml autoconf build-essential
 
 RUN pip install -U pip
@@ -61,3 +61,5 @@ CMD ["/bin/bash"]
 
 # Build:
 # docker build --no-cache -t ubuntu_16_quick_test:latest .
+# docker tag ubuntu_16_quick_test:latest alexz0kh/ubuntu_16_quick_test:latest
+# docker push alexz0kh/ubuntu_16_quick_test:latest

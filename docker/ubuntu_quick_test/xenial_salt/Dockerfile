@@ -48,7 +48,7 @@ RUN cd /etc/apt/ && echo > sources.list \
   && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' >> apt.conf.d/99alexz \
   && echo 'APT::Get::AllowUnauthenticated "true";' >> apt.conf.d/99alexz \
   && apt-get update && apt-get  upgrade -y \
-  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils \
+  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils lz4cat \
   && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml autoconf build-essential \
   && apt-get install -y reclass salt-formula* \
   && mkdir -p /etc/reclass/

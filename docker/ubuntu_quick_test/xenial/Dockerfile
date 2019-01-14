@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LANGUAGE=$LANG \
     TERM=xterm
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Use `;` instead `&&` where posible! somehow, pipefail may be ignored!
+SHELL ["/bin/bash", "-o", "pipefail", "-xec"]
 # a few minor docker-specific tweaks
 # see https://github.com/docker/docker/blob/master/contrib/mkimage/debootstrap
 RUN set -xe \

@@ -24,11 +24,9 @@ try:
 except ImportError:
     print("no ipdb")
 
-
 LOG.basicConfig(level=LOG.DEBUG, datefmt='%Y-%m-%d %H:%M:%S',
                 format='%(asctime)-15s - [%(levelname)s] %(module)s:%(lineno)d: '
                        '%(message)s', )
-
 
 cfgFile = os.environ.get("CONFIG_FILE", "config_infra.yaml")
 SAVE_YAML = ut.str2bool(os.environ.get("SAVE_YAML", True))
@@ -132,6 +130,23 @@ def gen_repo_aptly(dist, orig, postfix=''):
     return rez
 
 
+def gen_repo_mirror(release, repo, dist='xenial', orig=['main']):
+    # dist = '2018.7.0-milestone1' / nightly
+    # orig = ['extra', 'salt']
+    # release = proposed
+    # repo = openstack-pike
+
+    uri = os.path.join('http://mirror.mirantis.com/', release, repo, dist)
+    rez = {
+        "type": 'deb',
+        "uri": uri,
+        "dist": dist,
+        "orig_comps": orig,
+        "comment": "{}:{}".format(dist, orig)
+    }
+    return rez
+
+
 def setup_apt(rootdir):
     # Create APT structure
     for x in APT_DIRS:
@@ -149,7 +164,8 @@ def setup_apt(rootdir):
     }
     with open(apt_conf_path, "w") as f:
         for key in APT_CONF_ENTRIES.keys():
-            f.write('{} "{}";'.format(key, APT_CONF_ENTRIES[key].format(**apt_conf_opts)))
+            f.write('{} "{}";'.format(key, APT_CONF_ENTRIES[key].format(
+                **apt_conf_opts)))
 
     # Init global config object
     apt_pkg.init_config()
@@ -172,22 +188,26 @@ def get_pkgs(_cache, return_all_v=False):
             for v in pkg.versions.keys():
                 dupl[pkg.name][v] = pkg.versions[v].origins
             LOG.error("multiply versions"
-                      "detected:{}\n{}".format(pkg.name,pformat(pkg.versions)))
+                      "detected:{}\n{}".format(pkg.name, pformat(pkg.versions)))
         if return_all_v:
             all_v = {}
             for v in pkg.versions.keys():
                 all_v[v] = {'source_name': pkg.versions[v].source_name,
                             'archive': pkg.versions[v].origins[0].archive,
-                            'Private-Mcp-Spec-Sha': pkg.versions[v].record.get('Private-Mcp-Spec-Sha', None),
-                            'Private-Mcp-Code-Sha': pkg.versions[v].record.get('Private-Mcp-Code-Sha', None)}
+                            'Private-Mcp-Spec-Sha': pkg.versions[v].record.get(
+                                'Private-Mcp-Spec-Sha', None),
+                            'Private-Mcp-Code-Sha': pkg.versions[v].record.get(
+                                'Private-Mcp-Code-Sha', None)}
             pkgs[pkg.name] = {'versions': all_v}
         # Candidate, might not always be 'latest' - its depends on apt priorit.
         latest_v = pkg.candidate
         pkgs[pkg.name] = {'source_name': latest_v.source_name,
                           'archive': latest_v.origins[0].archive,
                           'version': latest_v.version,
-                          'Private-Mcp-Spec-Sha': latest_v.record.get('Private-Mcp-Spec-Sha', None),
-                          'Private-Mcp-Code-Sha': latest_v.record.get('Private-Mcp-Code-Sha', None)
+                          'Private-Mcp-Spec-Sha': latest_v.record.get(
+                              'Private-Mcp-Spec-Sha', None),
+                          'Private-Mcp-Code-Sha': latest_v.record.get(
+                              'Private-Mcp-Code-Sha', None)
                           }
     return pkgs, dupl
 
@@ -241,10 +261,11 @@ def process_salt_commit(pkgs_dict):
             sha = 'error'
             if pkg == 'salt-formula-ceilometer':
                 sha = result[pkg]['version'].split('-')[0].split('.')[-1]
-            elif pkg == 'salt-formula-swift':
-                sha = '0031c7f'
+            #            elif pkg == 'salt-formula-swift':
+            #                sha = '0031c7f'
             else:
-              sha = result[pkg]['version'].split('+')[1].split('.')[1].split('~')[0]
+                sha = \
+                result[pkg]['version'].split('+')[1].split('.')[1].split('~')[0]
             result[pkg]['Private-Mcp-Code-Sha'] = sha
             LOG.info('{}:{}'.format(pkg, sha))
         except IndexError:
@@ -299,6 +320,40 @@ def dump_aptly_openstack_simple(release, os_release='pike', to_dir=None):
     return _pkgs
 
 
+def dump_mirantis_mirror(release, repo_dir, type, to_dir=None):
+    # Magic for mirror.mirantis.com
+    # Type - as dirt as possible hack for guess gerrit repo
+    #ipdb.set_trace()
+    os_pkgs, _ = get_one_list([gen_repo_mirror(release, repo_dir)], private=True)
+    cfg = ut.read_yaml(os.environ.get("CONFIG_FILE", "config_mcp.yaml"))
+    _git_listfile = "{}/git_list.yaml".format(to_dir)
+    if GERRIT_CACHE and os.path.isfile(_git_listfile):
+        current_git_list = ut.read_yaml(_git_listfile)
+        LOG.warning("Cache used :{}".format(_git_listfile))
+    else:
+        current_git_list = old.get_current_list(cfg)
+        ut.save_yaml(current_git_list, _git_listfile)
+    parsed = old.check_deb_in_git_v2(current_git_list, os_pkgs, cfg)
+
+    if not to_dir:
+        return
+    for k in parsed.keys():
+        ut.save_yaml(parsed[k],
+                     "{}/mirror_"
+                     "mirantis_{}_{}_chunk_{}.yaml".format(to_dir,
+                                                              repo_dir,
+                                                              release, k))
+    merged = ut.dict_merge(os_pkgs, parsed['pkgs_nice'])
+    ut.save_yaml(merged,
+                 "{}/mirror_mirantis_{}_{}_merged.yaml".format(to_dir,
+                                                               repo_dir,
+                                                               release))
+    ut.save_yaml(os_pkgs,
+                 "{}/mirror_mirantis_{}_{}_clean.yaml".format(to_dir,
+                                                              repo_dir,
+                                                              release))
+
+
 def dump_aptly_openstack_junkie(release, os_release='pike', to_dir=None):
     # Maggic
     # http://apt.mirantis.com/xenial/openstack/pike/ nightly main
@@ -348,24 +403,29 @@ def dump_aptly_salt(release, to_dir=False):
 
 if __name__ == '__main__':
     rootdir = tempfile.mkdtemp()
-    #save_dir = 'rez_' + str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+    # save_dir = 'rez_' + str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
     save_dir = 'rez_2'
 
     ipdb.set_trace()
-    dump_aptly_openstack_junkie('2018.8.0', to_dir=save_dir)
-    dump_aptly_salt('2018.8.0', to_dir=save_dir)
+
+    dump_mirantis_mirror('2019.2.0', 'openstack-pike', to_dir=save_dir, type='os')
+    dump_mirantis_mirror('2019.2.0', 'salt-formulas', to_dir=save_dir, type='formulas' )
+    ipdb.set_trace()
+    # pre 2019.2
+    # dump_aptly_openstack_junkie('proposed', to_dir=save_dir)
+    # dump_aptly_salt('2018.11.0', to_dir=save_dir)
     sys.exit(0)
 
     ipdb.set_trace()
     ####
     apt_conf_path = setup_apt(rootdir=rootdir)
     sources_list = SourcesList()
-#    sources_list.add(**REPOS['apt_os_pike_testing_main'])
-#    sources_list.add(**REPOS['apt_xenial_testing_salt'])
-#    sources_list.add(**REPOS['uca_queens_xenial_upd_main'])
-#    sources_list.add(**REPOS['uca_queens_xenial_main'])
-#    sources_list.add(**REPOS['apt_xenial_nightly_extra'])
-#    sources_list.add(**REPOS['apt_os_pike_proposed_main'])
+    #    sources_list.add(**REPOS['apt_os_pike_testing_main'])
+    #    sources_list.add(**REPOS['apt_xenial_testing_salt'])
+    #    sources_list.add(**REPOS['uca_queens_xenial_upd_main'])
+    #    sources_list.add(**REPOS['uca_queens_xenial_main'])
+    #    sources_list.add(**REPOS['apt_xenial_nightly_extra'])
+    #    sources_list.add(**REPOS['apt_os_pike_proposed_main'])
     sources_list.add(**REPOS['apt_xenial_2018.4.0_salt'])
     sources_list.save()
     cache = apt.Cache(rootdir=rootdir)
@@ -378,7 +438,8 @@ if __name__ == '__main__':
 
     s_source = sort_by_source(pkgs_os_pike_testing)
     zz = {}
-    for i in s_source.keys(): zz[i] = {'pkgs': s_source[i]['pkgs'],'version': s_source[i]['version']}
+    for i in s_source.keys(): zz[i] = {'pkgs': s_source[i]['pkgs'],
+                                       'version': s_source[i]['version']}
     ipdb.set_trace()
     ###############
 
@@ -409,8 +470,6 @@ if __name__ == '__main__':
     ipdb.set_trace()
     LOG.info("ZZ")
     if SAVE_YAML:
-      ut.save_yaml(pkgs_os_pike_testing, "{}_pkgs_all.yaml".format(save_mask))
-      ut.save_yaml(s_source, "{}_pkgs_by_source.yaml".format(save_mask))
-      ut.save_yaml(duplicates, "{}_pkgs_duplicates.yaml".format(save_mask))
-
-
+        ut.save_yaml(pkgs_os_pike_testing, "{}_pkgs_all.yaml".format(save_mask))
+        ut.save_yaml(s_source, "{}_pkgs_by_source.yaml".format(save_mask))
+        ut.save_yaml(duplicates, "{}_pkgs_duplicates.yaml".format(save_mask))

@@ -2,11 +2,13 @@ gerrit_host: "azvyagintsev@gerrit.mcp.mirantis.net"
 targets:
   openstack:
     prefixes:
-     - "packaging/sources/"
+#     - "packaging/sources/"
+     - "salt-formulas/"
     branches_all:
-      - "mcp/pike"
+#      - "mcp/pike"
+      - 'release/2019.2.0'
     # mostly,system forks,which have only specs, w\o sources
-    project_blacklist:
+    project_blacklist_1:
       - alembic
       - angular.js
       - asn1crypto

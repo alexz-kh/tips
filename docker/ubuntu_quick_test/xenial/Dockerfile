@@ -41,12 +41,15 @@ RUN set -xe \
   && echo "deb [arch=amd64] http://ua.archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse" >> sources.list \
   && echo 'Acquire::Languages "none";' > apt.conf.d/docker-no-languages \
   && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
+  && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
   && apt-get update && apt-get  upgrade -y \
 #
-  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils liblz4-tool \
-  && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python-yaml autoconf build-essential \
+  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils liblz4-tool libssl-dev net-tools openssh-client \
+  && apt-get install -y python-pip python3-pip python-virtualenv python3-virtualenv python3-venv python-yaml autoconf build-essential \
+  && apt-get install -y docker.io \
 #  && pip install -U pip \
-  && apt-get remove -y --purge openssh-client manpages-dev manpages \
+# Cleanup
+#  && apt-get remove -y --purge openssh-client manpages-dev manpages \
   &&  apt-get -y autoremove; apt-get -y clean \
   && rm -rf /root/.cache \
   && rm -rf /var/lib/apt/lists/* \

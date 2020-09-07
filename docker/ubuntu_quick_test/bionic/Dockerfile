@@ -5,8 +5,10 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     LANG=C.UTF-8 \
-    LANGUAGE=$LANG
-SHELL ["/bin/bash", "-xec"]
+    LANGUAGE=$LANG \
+    TERM=xterm
+# Use `;` instead `&&` where posible! somehow, pipefail may be ignored!
+SHELL ["/bin/bash", "-o", "pipefail", "-xec"]
 # a few minor docker-specific tweaks
 # see https://github.com/docker/docker/blob/master/contrib/mkimage/debootstrap
 RUN set -xe \
@@ -31,7 +33,9 @@ RUN set -xe \
 	\
 	&& echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > /etc/apt/apt.conf.d/docker-gzip-indexes \
 	\
-	&& echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > /etc/apt/apt.conf.d/docker-recommends
+	&& echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > /etc/apt/apt.conf.d/docker-recommends \
+# new format
+	&& echo 'APT::Install-Recommends "false"; APT::Install-Suggests "false";' >> /etc/apt/apt.conf.d/docker-recommends \
 
 # make systemd-detect-virt return "docker"
 # See: https://github.com/systemd/systemd/blob/aa0c34279ee40bce2f9681b496922dedbadfca19/src/basic/virt.c#L434
@@ -45,19 +49,19 @@ RUN cd /etc/apt/ && echo > sources.list \
   && echo 'Acquire::GzipIndexes "true"; Acquire::CompressionTypes::Order:: "gz";' > apt.conf.d/docker-gzip-indexes \
   && echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' > apt.conf.d/docker-recommends \
   && apt-get update && apt-get  upgrade -y \
-  && apt-get install -y vim-tiny git-core screen wget curl \
-  && apt-get install -y python-pip python-virtualenv virtualenv python-yaml
-
-RUN pip install -U pip
-# Cleanup.
-RUN apt-get -y --purge remove libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 \
-    ppp pppconfig pppoeconf popularity-contest cpp gcc g++ libssl-doc
-RUN apt-get -y autoremove; apt-get -y clean;
-RUN rm -rf /root/.cache
-RUN rm -rf /var/lib/apt/lists/*
+#
+  && apt-get install -y vim git-core screen wget curl apt-transport-https sudo iputils-ping dnsutils liblz4-tool libssl-dev net-tools openssh-client tcpdump lsof \
+  && apt-get install -y python3-pip python3-venv autoconf build-essential liblzma-dev \
+  && apt-get install -y docker.io \
+#  && pip install -U pip \
+# Cleanup
+#  && apt-get remove -y --purge openssh-client manpages-dev manpages \
+  &&  apt-get -y autoremove; apt-get -y clean \
+  && rm -rf /root/.cache \
+  && rm -rf /var/lib/apt/lists/* \
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
 
 # Build:
-# docker build --no-cache -t ubuntu_18_quick_test:latest .
+# docker build --squash --no-cache -t ubuntu_18_quick_test:latest . && docker tag ubuntu_18_quick_test:latest alexz0kh/ubuntu_18_quick_test:latest && docker push alexz0kh/ubuntu_18_quick_test:latest

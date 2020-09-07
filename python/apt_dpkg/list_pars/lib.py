@@ -134,13 +134,16 @@ def read_yaml(y_file):
     sys.exit(1)
 
 
-def save_yaml(save_yaml, to_file):
+def save_yaml(save_yaml, to_file,representer=False):
     if not os.path.exists(os.path.dirname(to_file)):
         try:
             os.makedirs(os.path.dirname(to_file))
         except OSError as exc:
             LOG.error("Unable create:{}".format(to_file))
             sys.exit(1)
+    #yaml.add_representer(tuple, lambda dumper, data: dumper.represent_sequence('tag:yaml.org,2002:seq', data))
+    #yaml.add_representer(tuple, lambda dumper, data: dumper.represent_sequence('tag:yaml.org,2002:seq', data))
+    #yaml.add_representer(dict, lambda self, data: yaml.representer.SafeRepresenter.represent_dict(self, data.items()))
     with open(to_file, 'w') as f:
         f.write(yaml.dump(save_yaml, default_flow_style=False))
         LOG.info("{} file saved".format(to_file))

@@ -18,6 +18,7 @@ from datetime import datetime
 
 import lib as ut
 import old_run as old
+import ipdb
 
 try:
     import ipdb
@@ -110,9 +111,11 @@ APT_FILES = [
 APT_CONF_ENTRIES = {
     'Dir': '{rootdir}',
     'Debug::pkgProlemResolver': 'true',
-    'APT::Architecture': '{arch}',
+    'APT::Architectures': '{arch}',
     'APT::Install-Recommends': 'false',
     'APT::Get::AllowUnauthenticated': 'true',
+    'Acquire::AllowInsecureRepositories': 'true',
+    'Acquire::AllowDowngradeToInsecureRepositories': 'true',
 }
 
 
@@ -130,13 +133,32 @@ def gen_repo_aptly(dist, orig, postfix=''):
     return rez
 
 
+def gen_repo_mirror_update(release, repo, dist='xenial', orig=['main']):
+    # dist = '2018.7.0-milestone1' / nightly
+    # orig = ['extra', 'salt']
+    # release = proposed
+    # repo = openstack-pike
+
+    uri = os.path.join('http://mirror.mirantis.com/update/', release, repo,
+                       dist)
+    #    uri = os.path.join('http://mirror.mirantis.com/', release, repo, dist)
+    rez = {
+        "type": 'deb',
+        "uri": uri,
+        "dist": dist,
+        "orig_comps": orig,
+        "comment": "{}:{}".format(dist, orig)
+    }
+    return rez
+
+
 def gen_repo_mirror(release, repo, dist='xenial', orig=['main']):
     # dist = '2018.7.0-milestone1' / nightly
     # orig = ['extra', 'salt']
     # release = proposed
     # repo = openstack-pike
 
-    uri = os.path.join('http://mirror.mirantis.com/', release, repo, dist)
+    uri = os.path.join('[target-=Contents-deb] http://mirror.mirantis.com/', release, repo)
     rez = {
         "type": 'deb',
         "uri": uri,
@@ -158,6 +180,7 @@ def setup_apt(rootdir):
 
     # Generate apt.conf
     apt_conf_path = os.path.join(rootdir, "etc/apt/apt.conf")
+    os.putenv('APT_CONFIG', apt_conf_path)
     apt_conf_opts = {
         'arch': os.environ.get("ARCH", "amd64"),
         'rootdir': rootdir,
@@ -165,7 +188,9 @@ def setup_apt(rootdir):
     with open(apt_conf_path, "w") as f:
         for key in APT_CONF_ENTRIES.keys():
             f.write('{} "{}";'.format(key, APT_CONF_ENTRIES[key].format(
-                **apt_conf_opts)))
+                **apt_conf_opts)) + '\n')
+            f.write('APT{Ignore {"gpg-pubkey"; }}; ')
+            f.flush()
 
     # Init global config object
     apt_pkg.init_config()
@@ -230,6 +255,7 @@ def sort_by_source(pkgs):
             'Private-Mcp-Spec-Sha': _pkgs[pkg]['Private-Mcp-Spec-Sha'],
             'Private-Mcp-Code-Sha': _pkgs[pkg]['Private-Mcp-Code-Sha'],
             'source_name': src}
+        rez[src]['pkgs'].sort()
     return rez
 
 
@@ -261,11 +287,12 @@ def process_salt_commit(pkgs_dict):
             sha = 'error'
             if pkg == 'salt-formula-ceilometer':
                 sha = result[pkg]['version'].split('-')[0].split('.')[-1]
-            #            elif pkg == 'salt-formula-swift':
+            # elif pkg == 'salt-formula-swift':
             #                sha = '0031c7f'
             else:
                 sha = \
-                result[pkg]['version'].split('+')[1].split('.')[1].split('~')[0]
+                    result[pkg]['version'].split('+')[1].split('.')[1].split(
+                        '~')[0]
             result[pkg]['Private-Mcp-Code-Sha'] = sha
             LOG.info('{}:{}'.format(pkg, sha))
         except IndexError:
@@ -281,29 +308,29 @@ def get_one_list(listnames, private=True):
     """
     import shutil
 
-    rootdir = tempfile.mkdtemp()
-    apt_conf_path = setup_apt(rootdir=rootdir)
-    sources_list = SourcesList()
+    adir = tempfile.mkdtemp()
+    setup_apt(rootdir=adir)
+    _sources_list = SourcesList()
     for l_name in listnames:
-        sources_list.add(**l_name)
-    sources_list.save()
-    cache = apt.Cache(rootdir=rootdir)
-    cache.update()
-    cache.open()
-    pkgs, duplicates = get_pkgs(cache)
-    s_source = sort_by_source(pkgs)
+        _sources_list.add(**l_name)
+    _sources_list.save()
+    _cache = apt.Cache(rootdir=adir)
+    _cache.update()
+    _cache.open()
+    _pkgs, _duplicates = get_pkgs(_cache)
+    _s_source = sort_by_source(_pkgs)
+    _cache.close()
     try:
-        shutil.rmtree(rootdir)
-        LOG.debug("Directory removed: {}".format(rootdir))
-    except(OSError, e):
+        shutil.rmtree(adir)
+        LOG.debug("Directory removed: {}".format(adir))
+    except Exception as e:
         LOG.warning("Error: %s - %s." % (e.filename, e.strerror))
         pass
-    cache.close()
     if not private:
-        for i in s_source.keys():
-            s_source[i].pop('Private-Mcp-Spec-Sha', None)
-            s_source[i].pop('Private-Mcp-Code-Sha', None)
-    return s_source, duplicates
+        for k in s_source.keys():
+            _s_source[k].pop('Private-Mcp-Spec-Sha', None)
+            _s_source[k].pop('Private-Mcp-Code-Sha', None)
+    return _s_source, duplicates
 
 
 def dump_aptly_openstack_simple(release, os_release='pike', to_dir=None):
@@ -323,8 +350,9 @@ def dump_aptly_openstack_simple(release, os_release='pike', to_dir=None):
 def dump_mirantis_mirror(release, repo_dir, type, to_dir=None):
     # Magic for mirror.mirantis.com
     # Type - as dirt as possible hack for guess gerrit repo
-    #ipdb.set_trace()
-    os_pkgs, _ = get_one_list([gen_repo_mirror(release, repo_dir)], private=True)
+    # ipdb.set_trace()
+    os_pkgs, _ = get_one_list([gen_repo_mirror_update(release, repo_dir)],
+                              private=True)
     cfg = ut.read_yaml(os.environ.get("CONFIG_FILE", "config_mcp.yaml"))
     _git_listfile = "{}/git_list.yaml".format(to_dir)
     if GERRIT_CACHE and os.path.isfile(_git_listfile):
@@ -341,9 +369,10 @@ def dump_mirantis_mirror(release, repo_dir, type, to_dir=None):
         ut.save_yaml(parsed[k],
                      "{}/mirror_"
                      "mirantis_{}_{}_chunk_{}.yaml".format(to_dir,
-                                                              repo_dir,
-                                                              release, k))
+                                                           repo_dir,
+                                                           release, k))
     merged = ut.dict_merge(os_pkgs, parsed['pkgs_nice'])
+    # ipdb.set_trace()
     ut.save_yaml(merged,
                  "{}/mirror_mirantis_{}_{}_merged.yaml".format(to_dir,
                                                                repo_dir,
@@ -401,15 +430,30 @@ def dump_aptly_salt(release, to_dir=False):
     return _pkgs
 
 
+def dump_ubuntu_mirror(release='update/proposed', to_dir=None):
+    repo_dir = 'ubuntu'
+    dists = ['xenial']  # , 'xenial-updates', 'xenial-security']
+    orig = ['main']  # , 'restricted', 'universe']
+    repo = []
+    ipdb.set_trace()
+    for dist in dists:
+        repo.append(gen_repo_mirror(release, 'ubuntu', dist=dist, orig=orig))
+    ipdb.set_trace()
+    pkgs, _ = get_one_list(repo, private=False)
+
+
 if __name__ == '__main__':
-    rootdir = tempfile.mkdtemp()
+    dumpdir = tempfile.mkdtemp()
     # save_dir = 'rez_' + str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
     save_dir = 'rez_2'
 
     ipdb.set_trace()
 
-    dump_mirantis_mirror('2019.2.0', 'openstack-pike', to_dir=save_dir, type='os')
-    dump_mirantis_mirror('2019.2.0', 'salt-formulas', to_dir=save_dir, type='formulas' )
+    dump_ubuntu_mirror()
+    # dump_mirantis_mirror('2019.2.0', 'openstack-pike', to_dir=save_dir, type='os')
+    # Took from update already
+    # dump_mirantis_mirror('proposed', 'openstack-pike', to_dir=save_dir, type = 'os')
+    # dump_mirantis_mirror('2019.2.0', 'salt-formulas', to_dir=save_dir, type='formulas' )
     ipdb.set_trace()
     # pre 2019.2
     # dump_aptly_openstack_junkie('proposed', to_dir=save_dir)
@@ -471,5 +515,5 @@ if __name__ == '__main__':
     LOG.info("ZZ")
     if SAVE_YAML:
         ut.save_yaml(pkgs_os_pike_testing, "{}_pkgs_all.yaml".format(save_mask))
-        ut.save_yaml(s_source, "{}_pkgs_by_source.yaml".format(save_mask))
-        ut.save_yaml(duplicates, "{}_pkgs_duplicates.yaml".format(save_mask))
+    ut.save_yaml(s_source, "{}_pkgs_by_source.yaml".format(save_mask))
+    ut.save_yaml(duplicates, "{}_pkgs_duplicates.yaml".format(save_mask))
